@@ -15,7 +15,7 @@ const Events = () => {
   const [showCalendar, setShowCalendar] = useState(false);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(null);
-  
+
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: "",
@@ -58,21 +58,16 @@ const Events = () => {
       return;
     }
 
-    if (user.role !== "student") {
-      alert("Only students can register for events.");
-      return;
-    }
-
     // Open registration modal
     setShowRegisterModal(eventId);
   };
 
   const handleSubmitRegistration = async (e) => {
     e.preventDefault();
-    
+
     try {
       const response = await eventsAPI.register(showRegisterModal, registrationData);
-      
+
       if (response.success) {
         alert("Registered successfully!");
         // Refresh events to update registration count
@@ -94,7 +89,7 @@ const Events = () => {
 
   const handleAddEvent = async (e) => {
     e.preventDefault();
-    
+
     if (!newEvent.title || !newEvent.date || !newEvent.max_capacity) {
       alert("Please fill in all required fields.");
       return;
@@ -124,7 +119,15 @@ const Events = () => {
     }
   };
 
-  const EventCard = ({ id, title, current_registrations, max_capacity, date }) => (
+  const EventCard = ({
+    id,
+    title,
+    current_registrations,
+    max_capacity,
+    date,
+    user,
+  }) => (
+
     <div className="bg-gray-800 rounded-xl border border-gray-600 p-6 flex flex-col items-center gap-6 min-h-[340px] w-full shadow-lg hover:shadow-2xl transition-shadow duration-300">
       <img src={assets.event} className="w-full h-55 " />
       <div className="text-white text-xl font-semibold text-center tracking-wide">
@@ -142,12 +145,15 @@ const Events = () => {
       </div>
 
       <div className="flex w-full gap-4">
-        <button
-          onClick={() => handleRegister(id)}
-          className="flex-1 px-6 py-3 bg-transparent border border-gray-600 text-white rounded-lg text-lg font-medium hover:bg-gray-700 hover:border-amber-400 transition-colors duration-300"
-        >
-          Register
-        </button>
+        {user && user.role === "student" && (
+          <button
+            onClick={() => handleRegister(id)}
+            className="flex-1 px-6 py-3 bg-transparent border border-gray-600 text-white rounded-lg text-lg font-medium hover:bg-gray-700 hover:border-amber-400 transition-colors duration-300"
+          >
+            Register
+          </button>
+        )}
+
         <button
           onClick={() => setSelectedEvent(events.find((ev) => ev.id === id))}
           className="flex-1 px-6 py-3 bg-transparent border border-gray-600 text-white rounded-lg text-lg font-medium hover:bg-gray-700 hover:border-amber-400 transition-colors duration-300"
@@ -200,8 +206,9 @@ const Events = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {events.map((ev) => (
-            <EventCard key={ev.id} {...ev} />
+            <EventCard key={ev.id} {...ev} user={user} />
           ))}
+
         </div>
       </div>
 

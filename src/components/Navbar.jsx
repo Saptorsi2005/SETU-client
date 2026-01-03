@@ -19,6 +19,7 @@ const Navbar = () => {
     ? [
         { name: "Directory", path: "/directory" },
         { name: "Dashboard", path: "/dashboard" },
+        { name: "Events", path: "/events" },
       ]
     : [
         { name: "Home", path: "/home" },

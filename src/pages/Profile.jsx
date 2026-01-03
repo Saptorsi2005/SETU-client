@@ -1,7 +1,15 @@
 import React, { useState } from "react";
-import { FaLinkedin, FaGithub, FaFacebook, FaPlus, FaTrash } from "react-icons/fa";
+import {
+  FaLinkedin,
+  FaGithub,
+  FaFacebook,
+  FaPlus,
+  FaTrash,
+} from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import { assets } from "../assets/assets";
+
+/* ------------------ Initial Data ------------------ */
 
 const initialProfile = {
   name: "SARTHAK PANDEY",
@@ -14,119 +22,250 @@ const initialProfile = {
     { icon: <FaFacebook />, url: "#" },
   ],
   experience: [
-    "Software Intern, Infosys (2019, 3 months) – Worked on Java-based backend systems.",
-    "Associate Engineer, TCS (2021–2023).",
-    "Software Engineer, Microsoft (2023–Present).",
+    "Software Intern, Infosys (2019, 3 months)",
+    "Associate Engineer, TCS (2021–2023)",
+    "Software Engineer, Microsoft (2023–Present)",
   ],
-  skills: ["C, C++, JAVA, PYTHON", "AI/ML, Data Science", "Content Writing", "3D Modelling"],
+  skills: [
+    "C, C++, Java, Python",
+    "AI/ML, Data Science",
+    "Content Writing",
+    "3D Modelling",
+  ],
   education: [
-    "Delhi Public School, Kolkata (2005–2017) – PCM (Science) with Computer Science.",
-    "BTECH, Academy Of Technology (2017–2021).",
+    "Delhi Public School, Kolkata (2005–2017)",
+    "B.Tech, Academy Of Technology (2017–2021)",
   ],
   projects: [
-    "AI-Powered Student Attendance System using Face Recognition.",
-    "Stock Market Prediction using Time Series Analysis.",
-    "Predicting Heart Disease using Machine Learning.",
-    "Smart Traffic Monitoring using Computer Vision.",
+    "AI-Powered Student Attendance System",
+    "Stock Market Prediction",
+    "Heart Disease Prediction",
+    "Smart Traffic Monitoring",
   ],
 };
 
+/* ------------------ Card Component ------------------ */
+
 const Card = ({ title, children, onEdit }) => (
-  <div className="bg-gray-800/90 backdrop-blur-md rounded-xl border border-gray-700 p-6 flex flex-col gap-2 min-h-[170px] shadow-lg text-white relative">
-    <div className="flex items-center justify-between mb-2">
+  <div className="bg-gray-800/90 backdrop-blur-md rounded-xl border border-gray-700 p-6 shadow-lg text-white relative">
+    <div className="flex justify-between items-center mb-2">
       <h2 className="text-lg font-semibold">{title}</h2>
-      {onEdit && (
-        <button
-          onClick={onEdit}
-          className="bg-[#C5B239] text-black px-3 py-1 rounded-full text-sm font-medium hover:bg-[#b9a531] transition"
-        >
-          Edit
-        </button>
-      )}
+      <button
+        onClick={onEdit}
+        className="bg-[#C5B239] text-black px-3 py-1 rounded-full text-sm font-medium hover:bg-[#b9a531]"
+      >
+        Edit
+      </button>
     </div>
     {children}
   </div>
 );
 
+const PRONOUN_OPTIONS = [
+  "he/him",
+  "she/her",
+  "they/them",
+  "he/they",
+  "she/they",
+  "prefer not to say",
+];
+
+
+/* ------------------ Profile Page ------------------ */
+
 const Profile = () => {
   const [profile, setProfile] = useState(initialProfile);
+
+  /* Top section edit */
+  const [editingTop, setEditingTop] = useState(false);
+  const [topDraft, setTopDraft] = useState({
+    name: profile.name,
+    pronouns: profile.pronouns,
+    degree: profile.degree,
+    bio: profile.bio,
+  });
+
+  /* Modal edit (lists only) */
   const [modalOpen, setModalOpen] = useState(false);
   const [modalField, setModalField] = useState("");
   const [inputValues, setInputValues] = useState([]);
 
-  const handleEdit = (field) => {
+  const handleEditList = (field) => {
     setModalField(field);
     setInputValues([...profile[field]]);
     setModalOpen(true);
   };
 
-  const handleSave = () => {
-    const cleaned = inputValues.map((val) => val.trim()).filter((val) => val);
+  const handleSaveList = () => {
+    const cleaned = inputValues
+      .map((v) => v.trim())
+      .filter(Boolean);
+
     setProfile((prev) => ({ ...prev, [modalField]: cleaned }));
     setModalOpen(false);
   };
 
-  const handleAddEntry = () => {
+  const handleAddEntry = () =>
     setInputValues((prev) => [...prev, ""]);
-  };
 
-  const handleRemoveEntry = (index) => {
-    setInputValues((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleRemoveEntry = (i) =>
+    setInputValues((prev) => prev.filter((_, idx) => idx !== i));
 
   return (
     <div>
       <Navbar />
-      <div className="min-h-screen bg-gray-900 px-4 py-8 flex flex-col items-center justify-center pt-20">
-        {/* Top: Avatar + Bio */}
-        <div className="w-full max-w-4xl flex flex-row items-center bg-gray-800/90 backdrop-blur-xl rounded-xl border border-gray-700 shadow-lg md:px-8 px-4 py-6 mb-8">
-          <div className="flex-shrink-0 w-28 h-28 bg-gray-700 rounded-full flex items-center justify-center mr-6 overflow-hidden">
-            <img src={assets.profile} alt="avatar" className="w-full h-full object-cover" />
+
+      <div className="min-h-screen bg-gray-900 px-4 py-8 pt-20 flex flex-col items-center">
+        {/* ------------------ TOP SECTION ------------------ */}
+        <div className="w-full max-w-4xl bg-gray-800/90 rounded-xl border border-gray-700 shadow-lg p-6 mb-8 flex gap-6">
+          <div className="w-28 h-28 bg-gray-700 rounded-full overflow-hidden">
+            <img
+              src={assets.profile}
+              alt="avatar"
+              className="w-full h-full object-cover"
+            />
           </div>
 
           <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">
-                  {profile.name}
-                  <span className="text-base text-gray-400 font-light ml-2">{profile.pronouns}</span>
-                </h1>
-                <p className="mt-1 text-gray-300">{profile.degree}</p>
-              </div>
-              <div className="flex gap-2">
+            <div className="flex justify-between">
+              <div className="flex gap-3 text-xl text-gray-400">
                 {profile.social.map((s, i) => (
-                  <a
-                    key={i}
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-400 hover:text-[#C5B239] text-xl transition"
-                  >
+                  <a key={i} href={s.url}>
                     {s.icon}
                   </a>
                 ))}
               </div>
+
+              {!editingTop && (
+                <button
+                  onClick={() => {
+                    setTopDraft({
+                      name: profile.name,
+                      pronouns: profile.pronouns,
+                      degree: profile.degree,
+                      bio: profile.bio,
+                    });
+                    setEditingTop(true);
+                  }}
+                  className="bg-[#C5B239] text-black px-4 py-1 rounded-full text-sm"
+                >
+                  Edit Profile
+                </button>
+              )}
             </div>
-            <h2 className="text-lg font-bold mt-3 mb-1">BIO</h2>
-            <p className="text-gray-200">{profile.bio}</p>
+
+            {/* VIEW MODE */}
+            {!editingTop && (
+              <>
+                <h1 className="text-2xl font-bold mt-2">
+                  {profile.name}
+                  <span className="ml-2 text-gray-400 text-base">
+                    {profile.pronouns}
+                  </span>
+                </h1>
+                <p className="text-gray-300">{profile.degree}</p>
+                <h2 className="mt-3 font-semibold">BIO</h2>
+                <p className="text-gray-200">{profile.bio}</p>
+              </>
+            )}
+
+            {/* EDIT MODE */}
+            {editingTop && (
+              <div className="space-y-3 mt-2">
+                <input
+                  value={topDraft.name}
+                  onChange={(e) =>
+                    setTopDraft({ ...topDraft, name: e.target.value })
+                  }
+                  className="w-full bg-gray-700 text-white p-2 rounded"
+                  placeholder="Name"
+                />
+
+                <select
+                  value={topDraft.pronouns}
+                  onChange={(e) =>
+                    setTopDraft({
+                      ...topDraft,
+                      pronouns: e.target.value,
+                    })
+                  }
+                  className="w-full bg-gray-700 text-white p-2 rounded focus:outline-none"
+                >
+                  {PRONOUN_OPTIONS.map((p) => (
+                    <option key={p} value={p} className="bg-gray-800">
+                      {p}
+                    </option>
+                  ))}
+                </select>
+
+
+                <input
+                  value={topDraft.degree}
+                  onChange={(e) =>
+                    setTopDraft({
+                      ...topDraft,
+                      degree: e.target.value,
+                    })
+                  }
+                  className="w-full bg-gray-700 text-white p-2 rounded"
+                  placeholder="Degree"
+                />
+
+                <textarea
+                  value={topDraft.bio}
+                  onChange={(e) =>
+                    setTopDraft({ ...topDraft, bio: e.target.value })
+                  }
+                  className="w-full bg-gray-700 text-white p-2 rounded h-24"
+                  placeholder="Bio"
+                />
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditingTop(false)}
+                    className="px-4 py-2 bg-gray-600 rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setProfile((prev) => ({
+                        ...prev,
+                        ...topDraft,
+                      }));
+                      setEditingTop(false);
+                    }}
+                    className="px-4 py-2 bg-[#C5B239] text-black rounded font-medium"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Grid: Experience, Skills, Projects, Education */}
-        <div className="w-full max-w-5xl grid md:grid-cols-2 grid-cols-1 gap-6">
-          {["experience", "skills", "projects", "education"].map((field) => (
-            <Card key={field} title={field.toUpperCase()} onEdit={() => handleEdit(field)}>
-              {profile[field].map((item, idx) => (
-                <div key={idx} className="text-gray-200 text-sm mb-1">
-                  {item}
-                </div>
-              ))}
-            </Card>
-          ))}
+        {/* ------------------ GRID SECTIONS ------------------ */}
+        <div className="w-full max-w-5xl grid md:grid-cols-2 gap-6">
+          {["experience", "skills", "projects", "education"].map(
+            (field) => (
+              <Card
+                key={field}
+                title={field.toUpperCase()}
+                onEdit={() => handleEditList(field)}
+              >
+                {profile[field].map((item, i) => (
+                  <p key={i} className="text-gray-200 text-sm">
+                    {item}
+                  </p>
+                ))}
+              </Card>
+            )
+          )}
         </div>
       </div>
 
-      {/* Modal */}
+      {/* ------------------ MODAL ------------------ */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
           <div className="bg-[#1e1e1e] rounded-xl p-6 w-[450px] border border-gray-700 max-h-[80vh] overflow-y-auto">
@@ -139,42 +278,38 @@ const Profile = () => {
                 <textarea
                   value={val}
                   onChange={(e) => {
-                    const newArr = [...inputValues];
-                    newArr[idx] = e.target.value;
-                    setInputValues(newArr);
+                    const arr = [...inputValues];
+                    arr[idx] = e.target.value;
+                    setInputValues(arr);
                   }}
-                  className="w-full bg-gray-800 text-white rounded-md p-2 h-16 focus:outline-none border border-gray-600"
-                  placeholder="Type your entry..."
+                  className="w-full bg-gray-800 text-white rounded p-2 h-16"
                 />
                 <button
                   onClick={() => handleRemoveEntry(idx)}
-                  className="absolute top-2 right-2 text-red-400 hover:text-red-500"
-                  title="Remove this entry"
+                  className="absolute top-2 right-2 text-red-400"
                 >
                   <FaTrash />
                 </button>
               </div>
             ))}
 
-            {/* Add new entry button */}
             <button
               onClick={handleAddEntry}
-              className="flex items-center justify-center w-full bg-gray-700 text-white py-2 rounded-md mb-4 hover:bg-gray-600 transition"
+              className="w-full bg-gray-700 py-2 rounded mb-4 flex justify-center items-center gap-2"
             >
-              <FaPlus className="mr-2" /> Add New Entry
+              <FaPlus /> Add New
             </button>
 
-            {/* Actions */}
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setModalOpen(false)}
-                className="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600 transition"
+                className="px-4 py-2 bg-gray-600 rounded"
               >
                 Cancel
               </button>
               <button
-                onClick={handleSave}
-                className="px-4 py-2 bg-[#C5B239] text-black rounded-md font-medium hover:bg-[#b9a531] transition"
+                onClick={handleSaveList}
+                className="px-4 py-2 bg-[#C5B239] text-black rounded font-medium"
               >
                 Save
               </button>

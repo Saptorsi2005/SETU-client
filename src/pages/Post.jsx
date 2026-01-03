@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { assets } from "../assets/assets"; // Import your assets here
+import { useUser } from "../context/UserContext";
+
 
 const Post = () => {
   const [activeTab, setActiveTab] = useState("recommendations");
   const navigate = useNavigate();
+  const { user } = useUser();
 
   const mentors = [
     { id: 1, name: "Aarav Mehta", skill: "Full Stack Development", match: 92, avatar: assets.person1 },
@@ -27,7 +30,7 @@ const Post = () => {
     { id: 10, name: "Divya Nair", role: "QA Engineer", avatar: assets.person2 },
   ];
 
-  const posts = [
+  const [posts, setPosts] = useState([
     {
       id: 1,
       author: "Aarav Mehta",
@@ -68,7 +71,29 @@ const Post = () => {
       avatar: assets.person5,
       bgImage: assets.code
     },
-  ];
+  ]);
+  // 🔹 Create Post state
+  const [newPost, setNewPost] = useState({ text: "" });
+
+  // 🔹 Create Post handler
+  const handleCreatePost = () => {
+    if (!newPost.text.trim()) return;
+    if (!user) return; // safety
+
+    const post = {
+      id: Date.now(),
+      author: user.name || "You",
+      role: user.role, // 🔥 fetched from context
+      text: newPost.text,
+      avatar: assets.person1,
+      bgImage: assets.post,
+    };
+
+    setPosts((prev) => [post, ...prev]);
+    setNewPost({ text: "" });
+  };
+
+
 
   return (
     <div>
@@ -81,8 +106,8 @@ const Post = () => {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`capitalize px-4 py-2 rounded-md font-medium transition-colors duration-200 ${activeTab === tab
-                  ? "bg-[#C5B239] text-black"
-                  : "text-gray-400 hover:text-[#C5B239]"
+                ? "bg-[#C5B239] text-black"
+                : "text-gray-400 hover:text-[#C5B239]"
                 }`}
             >
               {tab === "jobpost" ? "Job Post" : tab}
@@ -171,6 +196,27 @@ const Post = () => {
           {activeTab === "feed" && (
             <div className="space-y-4">
               <h2 className="text-xl font-semibold mb-2 text-[#C5B239]">Feed</h2>
+
+              {/* 🔹 Create Post */}
+              <div className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3">
+                <textarea
+                  value={newPost.text}
+                  onChange={(e) => setNewPost({ text: e.target.value })}
+                  placeholder="Create a post..."
+                  rows={3}
+                  className="w-full bg-[#111] text-white p-3 rounded-lg outline-none resize-none"
+                />
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleCreatePost}
+                    className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md transition"
+                  >
+                    Post
+                  </button>
+                </div>
+              </div>
+
+              {/* 🔹 Existing Posts (UNCHANGED) */}
               {posts.map((post) => (
                 <div
                   key={post.id}
@@ -184,7 +230,9 @@ const Post = () => {
                       className="w-10 h-10 rounded-full object-cover"
                     />
                     <div>
-                      <h3 className="font-semibold text-[#C5B239]">{post.author}</h3>
+                      <h3 className="font-semibold text-[#C5B239]">
+                        {post.author}
+                      </h3>
                       <p className="text-gray-400 text-sm">{post.role}</p>
                     </div>
                   </div>
@@ -216,10 +264,26 @@ const Post = () => {
           )}
 
 
+
           {/* Job Post */}
           {activeTab === "jobpost" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-2 text-[#C5B239]">Job Openings</h2>
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-[#C5B239]">
+                  Job Openings
+                </h2>
+
+                {/* 🔹 Add Job – ONLY for Alumni */}
+                {user?.role === "alumni" && (
+                  <button
+                    onClick={() => navigate("/add-job")}
+                    className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
+                  >
+                    Add Job
+                  </button>
+                )}
+              </div>
+
               {[1, 2].map((i) => (
                 <div
                   key={i}
@@ -237,6 +301,7 @@ const Post = () => {
                       troubleshooting, and maintaining system logs.
                     </p>
                   </div>
+
                   <button
                     onClick={() => navigate(`/apply/${i}`)}
                     className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-3 py-1 rounded-md text-sm transition"
@@ -247,6 +312,7 @@ const Post = () => {
               ))}
             </div>
           )}
+
         </div>
       </div>
     </div>
