@@ -1,14 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { assets } from "../assets/assets"; // Import your assets here
 import { useUser } from "../context/UserContext";
+import { jobsAPI } from "../services/api";
+import { FaTimes, FaBriefcase, FaMapMarkerAlt, FaBuilding, FaUserTie } from "react-icons/fa";
 
 
 const Post = () => {
   const [activeTab, setActiveTab] = useState("recommendations");
   const navigate = useNavigate();
   const { user } = useUser();
+
+  // Jobs state
+  const [jobs, setJobs] = useState([]);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+  const [showApplyModal, setShowApplyModal] = useState(null);
+  const [showAddJobModal, setShowAddJobModal] = useState(false);
+
+  // Application form state
+  const [applicationData, setApplicationData] = useState({
+    resume_url: "",
+    resume_text: "",
+    cover_letter: "",
+    additional_details: "",
+  });
+
+  // Job creation/request form state
+  const [jobFormData, setJobFormData] = useState({
+    title: "",
+    company: "",
+    location: "",
+    description: "",
+    requirements: "",
+  });
 
   const mentors = [
     { id: 1, name: "Aarav Mehta", skill: "Full Stack Development", match: 92, avatar: assets.person1 },
@@ -91,6 +116,121 @@ const Post = () => {
 
     setPosts((prev) => [post, ...prev]);
     setNewPost({ text: "" });
+  };
+
+  // Fetch jobs when jobpost tab is active
+  useEffect(() => {
+    if (activeTab === "jobpost") {
+      fetchJobs();
+    }
+  }, [activeTab]);
+
+  const fetchJobs = async () => {
+    try {
+      setLoadingJobs(true);
+      const response = await jobsAPI.getAll();
+      if (response.success) {
+        setJobs(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+      alert("Failed to load jobs. Please try again later.");
+    } finally {
+      setLoadingJobs(false);
+    }
+  };
+
+  const handleApplyForJob = async (e) => {
+    e.preventDefault();
+
+    if (!applicationData.resume_url && !applicationData.resume_text) {
+      alert("Please provide either a resume URL or resume text.");
+      return;
+    }
+
+    try {
+      const response = await jobsAPI.apply(showApplyModal, applicationData);
+      if (response.success) {
+        alert("Application submitted successfully!");
+        setShowApplyModal(null);
+        setApplicationData({
+          resume_url: "",
+          resume_text: "",
+          cover_letter: "",
+          additional_details: "",
+        });
+        fetchJobs(); // Refresh jobs to update application count
+      }
+    } catch (err) {
+      console.error("Application error:", err);
+      alert(err.response?.data?.message || "Failed to submit application. Please try again.");
+    }
+  };
+
+  const handleAddJob = async (e) => {
+    e.preventDefault();
+
+    console.log("=== Job Submission Debug ===");
+    console.log("User from context:", user);
+    console.log("User role:", user?.role);
+    console.log("Token in localStorage:", localStorage.getItem('token'));
+
+    if (!jobFormData.title || !jobFormData.company || !jobFormData.description) {
+      alert("Please fill in title, company, and description.");
+      return;
+    }
+
+    try {
+      let response;
+      if (user?.role === "admin") {
+        // Admin creates job directly
+        console.log("Admin creating job with data:", jobFormData);
+        response = await jobsAPI.create(jobFormData);
+      } else if (user?.role === "alumni") {
+        // Alumni submits request
+        const requestData = {
+          job_title: jobFormData.title,
+          company: jobFormData.company,
+          location: jobFormData.location,
+          description: jobFormData.description,
+          requirements: jobFormData.requirements,
+        };
+        console.log("Alumni submitting job request:", requestData);
+        response = await jobsAPI.requestJob(requestData);
+        console.log("Response received:", response);
+      } else {
+        alert("You don't have permission to create jobs. Your role: " + (user?.role || "not logged in"));
+        return;
+      }
+
+      if (response && response.success) {
+        const message = user?.role === "admin" 
+          ? "Job created and published successfully!" 
+          : "Job request submitted successfully! It will be visible after admin approval.";
+        alert(message);
+        setShowAddJobModal(false);
+        setJobFormData({
+          title: "",
+          company: "",
+          location: "",
+          description: "",
+          requirements: "",
+        });
+        if (user?.role === "admin") {
+          fetchJobs(); // Only refresh if admin (job is immediately visible)
+        }
+      }
+    } catch (err) {
+      console.error("=== Error Details ===");
+      console.error("Full error:", err);
+      console.error("Error response:", err.response);
+      console.error("Error response data:", err.response?.data);
+      console.error("Error status:", err.response?.status);
+      console.error("Error message:", err.message);
+      
+      const errorMessage = err.response?.data?.message || err.message || "Failed to submit job request. Please try again.";
+      alert("ERROR: " + errorMessage);
+    }
   };
 
 
@@ -273,48 +413,264 @@ const Post = () => {
                   Job Openings
                 </h2>
 
-                {/* 🔹 Add Job – ONLY for Alumni */}
-                {user?.role === "alumni" && (
+                {/* Add Job button for Alumni and Admin */}
+                {user && (user.role === "alumni" || user.role === "admin") && (
                   <button
-                    onClick={() => navigate("/add-job")}
+                    onClick={() => setShowAddJobModal(true)}
                     className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
                   >
-                    Add Job
+                    {user.role === "admin" ? "Create Job" : "Request Job Posting"}
                   </button>
                 )}
               </div>
 
-              {[1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="bg-[#1a1a1a] p-4 rounded-xl shadow-md flex justify-between items-start"
-                >
-                  <div>
-                    <h3 className="font-semibold text-[#C5B239]">
-                      Technical Support Officer
-                    </h3>
-                    <p className="text-gray-400 text-sm mb-2">
-                      Company XYZ • Location: Remote
-                    </p>
-                    <p className="text-gray-300 text-sm">
-                      Responsibilities include assisting customers with tech issues,
-                      troubleshooting, and maintaining system logs.
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => navigate(`/apply/${i}`)}
-                    className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-3 py-1 rounded-md text-sm transition"
+              {loadingJobs ? (
+                <div className="text-center text-gray-400 py-8">Loading jobs...</div>
+              ) : jobs.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">No jobs available at the moment.</div>
+              ) : (
+                jobs.map((job) => (
+                  <div
+                    key={job.job_id}
+                    className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
                   >
-                    Apply
-                  </button>
-                </div>
-              ))}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg text-[#C5B239] mb-2 flex items-center gap-2">
+                          <FaBriefcase className="text-sm" />
+                          {job.title}
+                        </h3>
+                        <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <FaBuilding />
+                            {job.company}
+                          </span>
+                          {job.location && (
+                            <span className="flex items-center gap-1">
+                              <FaMapMarkerAlt />
+                              {job.location}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-1">
+                            <FaUserTie />
+                            Posted by: {job.posted_by_role === "admin" ? "Admin" : "Alumni"}
+                          </span>
+                          {job.application_count > 0 && (
+                            <span className="text-[#C5B239]">
+                              {job.application_count} {job.application_count === 1 ? 'application' : 'applications'}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-300 text-sm mb-2">
+                          {job.description}
+                        </p>
+                        {job.requirements && (
+                          <div className="text-gray-400 text-sm">
+                            <span className="font-semibold">Requirements:</span> {job.requirements}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Apply button for students and alumni */}
+                      {user && (user.role === "student" || user.role === "alumni") && (
+                        <button
+                          onClick={() => setShowApplyModal(job.job_id)}
+                          className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition ml-4"
+                        >
+                          Apply
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
 
         </div>
       </div>
+
+      {/* Job Application Modal */}
+      {showApplyModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-[#1a1a1a] p-8 rounded-xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => {
+                setShowApplyModal(null);
+                setApplicationData({
+                  resume_url: "",
+                  resume_text: "",
+                  cover_letter: "",
+                  additional_details: "",
+                });
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <FaTimes />
+            </button>
+            <h2 className="text-white text-2xl font-semibold mb-6">
+              Apply for Job
+            </h2>
+            <form onSubmit={handleApplyForJob} className="space-y-4">
+              <div>
+                <label className="text-gray-400 text-sm mb-1 block">
+                  Resume URL (e.g., Google Drive, Dropbox)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  value={applicationData.resume_url}
+                  onChange={(e) =>
+                    setApplicationData({ ...applicationData, resume_url: e.target.value })
+                  }
+                  className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
+                />
+              </div>
+
+              <div className="text-center text-gray-500 text-sm">OR</div>
+
+              <div>
+                <label className="text-gray-400 text-sm mb-1 block">
+                  Paste Resume Text
+                </label>
+                <textarea
+                  placeholder="Paste your resume content here..."
+                  value={applicationData.resume_text}
+                  onChange={(e) =>
+                    setApplicationData({ ...applicationData, resume_text: e.target.value })
+                  }
+                  className="w-full bg-[#111] p-3 rounded-md text-white outline-none resize-none"
+                  rows={4}
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="text-gray-400 text-sm mb-1 block">
+                  Cover Letter (Optional)
+                </label>
+                <textarea
+                  placeholder="Write your cover letter..."
+                  value={applicationData.cover_letter}
+                  onChange={(e) =>
+                    setApplicationData({ ...applicationData, cover_letter: e.target.value })
+                  }
+                  className="w-full bg-[#111] p-3 rounded-md text-white outline-none resize-none"
+                  rows={4}
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="text-gray-400 text-sm mb-1 block">
+                  Additional Details (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Portfolio link, LinkedIn, etc."
+                  value={applicationData.additional_details}
+                  onChange={(e) =>
+                    setApplicationData({ ...applicationData, additional_details: e.target.value })
+                  }
+                  className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-[#C5B239] hover:bg-[#b9a531] py-3 rounded-md text-black font-semibold transition-colors"
+              >
+                Submit Application
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Request Job Modal */}
+      {showAddJobModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-[#1a1a1a] p-8 rounded-xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => {
+                setShowAddJobModal(false);
+                setJobFormData({
+                  title: "",
+                  company: "",
+                  location: "",
+                  description: "",
+                  requirements: "",
+                });
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <FaTimes />
+            </button>
+            <h2 className="text-white text-2xl font-semibold mb-6">
+              {user?.role === "admin" ? "Create Job" : "Request Job Posting"}
+            </h2>
+            <form onSubmit={handleAddJob} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Job Title *"
+                value={jobFormData.title}
+                onChange={(e) =>
+                  setJobFormData({ ...jobFormData, title: e.target.value })
+                }
+                className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Company Name *"
+                value={jobFormData.company}
+                onChange={(e) =>
+                  setJobFormData({ ...jobFormData, company: e.target.value })
+                }
+                className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Location (e.g., Remote, Mumbai, Bangalore)"
+                value={jobFormData.location}
+                onChange={(e) =>
+                  setJobFormData({ ...jobFormData, location: e.target.value })
+                }
+                className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
+              />
+              <textarea
+                placeholder="Job Description *"
+                value={jobFormData.description}
+                onChange={(e) =>
+                  setJobFormData({ ...jobFormData, description: e.target.value })
+                }
+                className="w-full bg-[#111] p-3 rounded-md text-white outline-none resize-none"
+                rows={4}
+                required
+              ></textarea>
+              <textarea
+                placeholder="Requirements (Optional)"
+                value={jobFormData.requirements}
+                onChange={(e) =>
+                  setJobFormData({ ...jobFormData, requirements: e.target.value })
+                }
+                className="w-full bg-[#111] p-3 rounded-md text-white outline-none resize-none"
+                rows={3}
+              ></textarea>
+              <button
+                type="submit"
+                className="w-full bg-[#C5B239] hover:bg-[#b9a531] py-3 rounded-md text-black font-semibold transition-colors"
+              >
+                {user?.role === "admin" ? "Create Job" : "Submit Request"}
+              </button>
+              {user?.role === "alumni" && (
+                <p className="text-gray-400 text-sm text-center">
+                  Your job posting will be visible after admin approval.
+                </p>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

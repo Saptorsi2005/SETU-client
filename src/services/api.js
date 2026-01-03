@@ -143,4 +143,81 @@ export const eventsAPI = {
   },
 };
 
+// Jobs API calls
+export const jobsAPI = {
+  // Get all approved jobs
+  getAll: async (params = {}) => {
+    const response = await api.get('/jobs', { params });
+    return response.data;
+  },
+
+  // Get job by ID
+  getById: async (id) => {
+    const response = await api.get(`/jobs/${id}`);
+    return response.data;
+  },
+
+  // Create job directly (admin only)
+  create: async (jobData) => {
+    const response = await api.post('/jobs/create', jobData);
+    return response.data;
+  },
+
+  // Request job posting (alumni only)
+  requestJob: async (jobData) => {
+    const response = await api.post('/jobs/request', jobData);
+    return response.data;
+  },
+
+  // Apply for a job (students and alumni)
+  apply: async (jobId, applicationData) => {
+    const response = await api.post(`/jobs/apply/${jobId}`, applicationData);
+    return response.data;
+  },
+
+  // Get pending job requests (admin only)
+  getPendingRequests: async (params = {}) => {
+    const response = await api.get('/jobs/pending/requests', { params });
+    return response.data;
+  },
+
+  // Approve job request (admin only)
+  approveRequest: async (requestId) => {
+    const response = await api.post(`/jobs/approve/${requestId}`);
+    return response.data;
+  },
+
+  // Reject job request (admin only)
+  rejectRequest: async (requestId, rejectionReason = '') => {
+    const response = await api.post(`/jobs/reject/${requestId}`, {
+      rejection_reason: rejectionReason,
+    });
+    return response.data;
+  },
+
+  // Get my applications (students and alumni)
+  getMyApplications: async () => {
+    const response = await api.get('/jobs/my/applications');
+    return response.data;
+  },
+
+  // Get my job requests (alumni only)
+  getMyRequests: async () => {
+    const response = await api.get('/jobs/my/requests');
+    return response.data;
+  },
+
+  // Get applications for a job (admin or job poster only)
+  getJobApplications: async (jobId) => {
+    const response = await api.get(`/jobs/${jobId}/applications`);
+    return response.data;
+  },
+
+  // Delete a job (admin or job poster only)
+  delete: async (jobId) => {
+    const response = await api.delete(`/jobs/${jobId}`);
+    return response.data;
+  },
+};
+
 export default api;
