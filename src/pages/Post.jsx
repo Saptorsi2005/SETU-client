@@ -44,7 +44,7 @@ const Post = () => {
     requirements: "",
   });
 
-  const mentors = [
+  const [recommendedMentors, setRecommendedMentors] = useState([
     { id: 1, name: "Sneha Patel", skill: "UI/UX Design", match: 95, avatar: assets.person5 },
     { id: 2, name: "Aarav Mehta", skill: "Full Stack Development", match: 92, avatar: assets.person1 },
     { id: 3, name: "Riya Sharma", skill: "Data Science & ML", match: 87, avatar: assets.person3 },
@@ -53,21 +53,18 @@ const Post = () => {
     { id: 6, name: "Neha Reddy", skill: "Product Management", match: 76, avatar: assets.person6 },
     { id: 7, name: "Ishaan Roy", skill: "Mobile Development", match: 73, avatar: assets.person3 },
     { id: 8, name: "Divya Nair", skill: "QA Automation", match: 70, avatar: assets.person2 },
-  ];
+  ]);
 
+  const [connections, setConnections] = useState([]);
 
-  const connections = [
-    { id: 1, name: "Ananya Gupta", role: "Frontend Developer", avatar: assets.person5 },
-    { id: 2, name: "Rohit Verma", role: "Data Analyst", avatar: assets.person6 },
-    { id: 3, name: "Mehul Jain", role: "Cloud Engineer", avatar: assets.person1 },
-    { id: 4, name: "Priya Das", role: "UX Researcher", avatar: assets.person2 },
-    { id: 5, name: "Ishaan Roy", role: "Mobile App Developer", avatar: assets.person3 },
-    { id: 6, name: "Simran Kaur", role: "AI Engineer", avatar: assets.person4 },
-    { id: 7, name: "Kunal Sinha", role: "Backend Developer", avatar: assets.person5 },
-    { id: 8, name: "Neha Reddy", role: "Product Manager", avatar: assets.person6 },
-    { id: 9, name: "Rahul Yadav", role: "Blockchain Specialist", avatar: assets.person1 },
-    { id: 10, name: "Divya Nair", role: "QA Engineer", avatar: assets.person2 },
-  ];
+  const handleConnect = (mentor) => {
+    setConnections((prev) => [...prev, mentor]);
+    setRecommendedMentors((prev) =>
+      prev.filter((m) => m.id !== mentor.id)
+    );
+    setActiveTab("connections"); // optional but UX-friendly
+  };
+
 
   const [posts, setPosts] = useState([
     {
@@ -270,12 +267,13 @@ const Post = () => {
       alert("ERROR: " + errorMessage);
     }
   };
-  const filteredMentors = mentors
-  .filter((m) =>
-    m.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-  .sort((a, b) => b.match - a.match)
-  .slice(0, 10);
+  const filteredMentors = recommendedMentors
+    .filter((m) =>
+      m.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => b.match - a.match)
+    .slice(0, 10);
+
 
 
 
@@ -304,80 +302,81 @@ const Post = () => {
         <div className="max-w-5xl mx-auto space-y-6">
           {/* Recommendations */}
           {activeTab === "recommendations" && (
-  <div className="space-y-4">
-    <h2 className="text-xl font-semibold text-[#C5B239]">
-      Mentor Recommendations
-    </h2>
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold text-[#C5B239]">
+                Mentor Recommendations
+              </h2>
 
-    {/* Search */}
-    <input
-      type="text"
-      placeholder="Search mentors by name..."
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      className="w-full bg-[#111] text-white p-3 rounded-lg outline-none border border-gray-700 focus:border-[#C5B239]"
-    />
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Search mentors by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#111] text-white p-3 rounded-lg outline-none border border-gray-700 focus:border-[#C5B239]"
+              />
 
-    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {filteredMentors.map((mentor) => (
-        <div
-          key={mentor.id}
-          className="bg-[#1a1a1a] p-3 rounded-lg shadow-sm hover:bg-[#222] transition"
-        >
-          <div className="flex items-center gap-3">
-            <img
-              src={mentor.avatar}
-              alt={mentor.name}
-              className="w-10 h-10 rounded-full object-cover"
-            />
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredMentors.map((mentor) => (
+                  <div
+                    key={mentor.id}
+                    className="bg-[#1a1a1a] p-3 rounded-lg shadow-sm hover:bg-[#222] transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={mentor.avatar}
+                        alt={mentor.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
 
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-[#C5B239]">
-                {mentor.name}
-              </h3>
-              <p className="text-xs text-gray-400">{mentor.skill}</p>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-[#C5B239]">
+                          {mentor.name}
+                        </h3>
+                        <p className="text-xs text-gray-400">{mentor.skill}</p>
+                      </div>
+
+                      <span className="text-xs text-gray-300 font-medium">
+                        {mentor.match}%
+                      </span>
+                    </div>
+
+                    {/* Match bar */}
+                    <div className="w-full bg-gray-800 rounded-full h-1.5 mt-2">
+                      <div
+                        className="bg-[#C5B239] h-1.5 rounded-full"
+                        style={{ width: `${mentor.match}%` }}
+                      />
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-between mt-3">
+                      <button
+                        onClick={() => navigate(`/mentor/${mentor.id}`)}
+                        className="text-xs text-gray-400 hover:text-[#C5B239]"
+                      >
+                        View Profile
+                      </button>
+
+                      <button
+                        onClick={() => handleConnect(mentor)}
+                        className="bg-[#C5B239] text-black text-xs px-3 py-1 rounded-md hover:bg-[#b9a531]"
+                      >
+                        Connect
+                      </button>
+
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-
-            <span className="text-xs text-gray-300 font-medium">
-              {mentor.match}%
-            </span>
-          </div>
-
-          {/* Match bar */}
-          <div className="w-full bg-gray-800 rounded-full h-1.5 mt-2">
-            <div
-              className="bg-[#C5B239] h-1.5 rounded-full"
-              style={{ width: `${mentor.match}%` }}
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-between mt-3">
-            <button
-              onClick={() => navigate(`/mentor/${mentor.id}`)}
-              className="text-xs text-gray-400 hover:text-[#C5B239]"
-            >
-              View Profile
-            </button>
-
-            <button
-              onClick={() => navigate("/messages")}
-              className="bg-[#C5B239] text-black text-xs px-3 py-1 rounded-md hover:bg-[#b9a531]"
-            >
-              Connect
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
+          )}
 
 
           {/* Connections */}
           {activeTab === "connections" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-2 text-[#C5B239]">
+              <h2 className="text-xl font-semibold text-[#C5B239]">
                 Your Connections
               </h2>
               <input
@@ -388,41 +387,48 @@ const Post = () => {
                 className="w-full bg-[#111] text-white p-3 rounded-lg outline-none border border-gray-700 focus:border-[#C5B239]"
               />
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                {connections
-                  .filter((conn) =>
-                    conn.name.toLowerCase().includes(searchQuery.toLowerCase())
-                  )
-                  .map((conn) => (
-
-                    <div
-                      key={conn.id}
-                      onClick={() => navigate(`/connectionProfile/${conn.id}`)}
-                      className="bg-[#1a1a1a] p-4 rounded-xl shadow-md flex justify-between items-center hover:bg-[#222] cursor-pointer transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={conn.avatar}
-                          alt={conn.name}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                        <div>
-                          <h3 className="font-semibold text-[#C5B239]">{conn.name}</h3>
-                          <p className="text-gray-400 text-sm">{conn.role}</p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/messages`);
-                        }}
-                        className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-3 py-1 rounded-md text-sm transition"
+              {connections.length === 0 ? (
+                <p className="text-gray-400 text-center py-10">
+                  You have no connections yet. Start connecting with mentors.
+                </p>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {connections
+                    .filter((conn) =>
+                      conn.name.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map((conn) => (
+                      <div
+                        key={conn.id}
+                        onClick={() => navigate(`/connectionProfile/${conn.id}`)}
+                        className="bg-[#1a1a1a] p-4 rounded-xl shadow-md flex justify-between items-center hover:bg-[#222] cursor-pointer transition-all"
                       >
-                        Message
-                      </button>
-                    </div>
-                  ))}
-              </div>
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={conn.avatar}
+                            alt={conn.name}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                          <div>
+                            <h3 className="font-semibold text-[#C5B239]">{conn.name}</h3>
+                            <p className="text-gray-400 text-sm">{conn.skill}</p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/messages");
+                          }}
+                          className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-3 py-1 rounded-md text-sm transition"
+                        >
+                          Message
+                        </button>
+                      </div>
+                    ))}
+                </div>
+              )}
+
             </div>
           )}
 
