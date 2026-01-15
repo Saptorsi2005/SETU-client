@@ -125,6 +125,92 @@ const Post = () => {
     }
   };
 
+  // 🔹 Like/Unlike handler
+  const handleLike = async (postId, isLiked) => {
+    try {
+      if (isLiked) {
+        await postsAPI.unlike(postId);
+      } else {
+        await postsAPI.like(postId);
+      }
+
+      // Update local state
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.post_id === postId
+            ? {
+                ...post,
+                is_liked: !isLiked,
+                likes_count: isLiked ? post.likes_count - 1 : post.likes_count + 1,
+              }
+            : post
+        )
+      );
+    } catch (error) {
+      console.error("Failed to like/unlike post:", error);
+      alert("Failed to update like");
+    }
+  };
+
+  // 🔹 Comment state and handler
+  const [commentText, setCommentText] = useState({});
+  const [showComments, setShowComments] = useState({});
+  const [comments, setComments] = useState({});
+
+  const handleAddComment = async (postId) => {
+    const text = commentText[postId];
+    if (!text || !text.trim()) {
+      alert("Please enter a comment");
+      return;
+    }
+
+    try {
+      const response = await postsAPI.addComment(postId, text);
+      
+      if (response.success) {
+        // Update comments count
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.post_id === postId
+              ? { ...post, comments_count: post.comments_count + 1 }
+              : post
+          )
+        );
+
+        // Clear comment text
+        setCommentText((prev) => ({ ...prev, [postId]: "" }));
+
+        // If comments are visible, refresh them
+        if (showComments[postId]) {
+          fetchComments(postId);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to add comment:", error);
+      alert("Failed to add comment");
+    }
+  };
+
+  const fetchComments = async (postId) => {
+    try {
+      const response = await postsAPI.getComments(postId);
+      if (response.success) {
+        setComments((prev) => ({ ...prev, [postId]: response.comments }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch comments:", error);
+    }
+  };
+
+  const toggleComments = (postId) => {
+    const isCurrentlyShowing = showComments[postId];
+    setShowComments((prev) => ({ ...prev, [postId]: !isCurrentlyShowing }));
+    
+    // Fetch comments if showing for the first time
+    if (!isCurrentlyShowing && !comments[postId]) {
+      fetchComments(postId);
+    }
+  };
 
   // Fetch jobs when jobpost tab is active
   useEffect(() => {
@@ -455,7 +541,7 @@ const Post = () => {
               <div className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3">
                 <textarea
                   value={newPost.text}
-                  onChange={(e) => setNewPost({ text: e.target.value })}
+                  onChange={(e) => setNewPost({ ...newPost, text: e.target.value })}
                   placeholder="Create a post..."
                   rows={3}
                   className="w-full bg-[#111] text-white p-3 rounded-lg outline-none resize-none"
@@ -536,11 +622,15 @@ const Post = () => {
                   {/* Actions */}
                   <div className="flex justify-between mt-3 pt-2 border-t border-gray-700">
                     <button
-                      className="text-gray-400 hover:text-[#C5B239] text-sm transition"
+                      onClick={() => handleLike(post.post_id, post.is_liked)}
+                      className={`${
+                        post.is_liked ? "text-[#C5B239]" : "text-gray-400"
+                      } hover:text-[#C5B239] text-sm transition`}
                     >
-                      👍 Like ({post.likes_count})
+                      👍 {post.is_liked ? "Liked" : "Like"} ({post.likes_count})
                     </button>
                     <button
+                      onClick={() => toggleComments(post.post_id)}
                       className="text-gray-400 hover:text-[#C5B239] text-sm transition"
                     >
                       💬 Comment ({post.comments_count})
@@ -551,6 +641,69 @@ const Post = () => {
                       ✉️ Message
                     </button>
                   </div>
+
+                  {/* Comments Section */}
+                  {showComments[post.post_id] && (
+                    <div className="mt-4 border-t border-gray-700 pt-4">
+                      {/* Add Comment Input */}
+                      <div className="flex gap-2 mb-4">
+                        <input
+                          type="text"
+                          value={commentText[post.post_id] || ""}
+                          onChange={(e) =>
+                            setCommentText((prev) => ({
+                              ...prev,
+                              [post.post_id]: e.target.value,
+                            }))
+                          }
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              handleAddComment(post.post_id);
+                            }
+                          }}
+                          placeholder="Write a comment..."
+                          className="flex-1 bg-[#212529] border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5B239]"
+                        />
+                        <button
+                          onClick={() => handleAddComment(post.post_id)}
+                          className="bg-[#C5B239] text-black px-4 py-2 rounded-lg hover:bg-[#d4c04a] transition"
+                        >
+                          Post
+                        </button>
+                      </div>
+
+                      {/* Display Comments */}
+                      <div className="space-y-3">
+                        {comments[post.post_id]?.length > 0 ? (
+                          comments[post.post_id].map((comment) => (
+                            <div
+                              key={comment.comment_id}
+                              className="bg-[#212529] p-3 rounded-lg"
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <div className="w-6 h-6 rounded-full bg-[#C5B239] flex items-center justify-center text-black text-xs font-bold">
+                                  {comment.user_role?.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="text-sm text-gray-400">
+                                  {comment.user_role}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(comment.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-gray-300 text-sm">
+                                {comment.comment_text}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-gray-500 text-sm text-center py-2">
+                            No comments yet. Be the first to comment!
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
 
