@@ -77,6 +77,12 @@ const Post = () => {
     image: null,
   });
 
+  // 🔹 Image preview and crop state
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [tempImageFile, setTempImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageZoom, setImageZoom] = useState(1);
+
 
   // 🔹 Create Post handler
   const handleCreatePost = async () => {
@@ -122,6 +128,122 @@ const Post = () => {
       console.error("Failed to create post:", error);
       const errorMsg = error.response?.data?.message || error.message || "Unknown error";
       alert(`Failed to create post: ${errorMsg}`);
+    }
+  };
+
+  // 🔹 Handle image file selection
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image size should be less than 5MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert("Please select a valid image file");
+        return;
+      }
+
+      setTempImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setShowImageModal(true);
+      setImageZoom(1);
+    }
+  };
+
+  // 🔹 Confirm and use the selected image
+  const handleConfirmImage = async () => {
+    if (!tempImageFile) return;
+
+    // Create a canvas to resize the image
+    const img = new Image();
+    img.src = imagePreview;
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Calculate dimensions (max width/height 1200px to keep quality but reduce size)
+      const MAX_WIDTH = 1200;
+      const MAX_HEIGHT = 1200;
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height *= MAX_WIDTH / width;
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width *= MAX_HEIGHT / height;
+          height = MAX_HEIGHT;
+        }
+      }
+      
+      // Apply zoom
+      width *= imageZoom;
+      height *= imageZoom;
+      
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Draw image on canvas
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        const processedFile = new File([blob], tempImageFile.name, {
+          type: tempImageFile.type,
+          lastModified: Date.now(),
+        });
+        
+        setNewPost({ ...newPost, image: processedFile });
+        setShowImageModal(false);
+        setTempImageFile(null);
+      }, tempImageFile.type, 0.9);
+    };
+  };
+
+  // 🔹 Cancel image selection
+  const handleCancelImage = () => {
+    setShowImageModal(false);
+    setTempImageFile(null);
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
+    setImageZoom(1);
+  };
+
+  // 🔹 Remove selected image from post
+  const handleRemoveImage = () => {
+    if (newPost.image) {
+      setNewPost({ ...newPost, image: null });
+    }
+  };
+
+  // 🔹 Delete post handler
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) {
+      return;
+    }
+
+    try {
+      const response = await postsAPI.delete(postId);
+      
+      if (response.success) {
+        // Remove post from local state
+        setPosts((prev) => prev.filter((post) => post.post_id !== postId));
+        alert("Post deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Unknown error";
+      alert(`Failed to delete post: ${errorMsg}`);
     }
   };
 
@@ -546,26 +668,49 @@ const Post = () => {
                   rows={3}
                   className="w-full bg-[#111] text-white p-3 rounded-lg outline-none resize-none"
                 />
-                {/* Image upload */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    setNewPost({
-                      ...newPost,
-                      image: e.target.files[0],
-                    })
-                  }
-                  className="text-gray-400 text-sm"
-                />
+                
+                {/* Image upload button */}
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer bg-[#2a2a2a] hover:bg-[#333] text-gray-300 px-4 py-2 rounded-lg transition flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Add Photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageSelect}
+                      className="hidden"
+                    />
+                  </label>
+                  {newPost.image && (
+                    <span className="text-green-400 text-sm flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      Image added
+                    </span>
+                  )}
+                </div>
 
                 {/* Image preview */}
                 {newPost.image && (
-                  <img
-                    src={URL.createObjectURL(newPost.image)}
-                    alt="Preview"
-                    className="w-full h-48 object-cover rounded-lg border border-gray-700"
-                  />
+                  <div className="relative">
+                    <img
+                      src={URL.createObjectURL(newPost.image)}
+                      alt="Preview"
+                      className="w-full max-h-96 object-contain rounded-lg border border-gray-700 bg-black"
+                    />
+                    <button
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition"
+                      title="Remove image"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 )}
 
                 <div className="flex justify-end">
@@ -591,19 +736,43 @@ const Post = () => {
                   key={post.post_id}
                   className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
                 >
-                  {/* Author Info */}
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={assets.person1}
-                      alt="User"
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <h3 className="font-semibold text-[#C5B239]">
-                        {post.user_role === 'student' ? 'Student' : 'Alumni'} (ID: {post.user_id})
-                      </h3>
-                      <p className="text-gray-400 text-sm">{post.user_role}</p>
+                  {/* Author Info with Delete Button */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={assets.person1}
+                        alt="User"
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div>
+                        <h3 className="font-semibold text-[#C5B239]">
+                          {post.user_role === 'student' ? 'Student' : 'Alumni'} (ID: {post.user_id})
+                        </h3>
+                        <p className="text-gray-400 text-sm">{post.user_role}</p>
+                      </div>
                     </div>
+
+                    {/* Delete button - only visible to post owner */}
+                    {user && user.id === post.user_id && (
+                      <button
+                        onClick={() => handleDeletePost(post.post_id)}
+                        className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
+                        title="Delete post"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    )}
                   </div>
 
                   {/* Post Text */}
@@ -611,11 +780,13 @@ const Post = () => {
 
                   {/* Post Image from Cloudinary */}
                   {post.image_url && (
-                    <img
-                      src={post.image_url}
-                      alt="Post visual"
-                      className="w-full h-64 rounded-lg object-cover border border-gray-800"
-                    />
+                    <div className="w-full rounded-lg overflow-hidden border border-gray-800 bg-black">
+                      <img
+                        src={post.image_url}
+                        alt="Post visual"
+                        className="w-full max-h-[600px] object-contain"
+                      />
+                    </div>
                   )}
 
 
@@ -1099,6 +1270,113 @@ const Post = () => {
                 </p>
               )}
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 🔹 Image Preview & Resize Modal */}
+      {showImageModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1a1a1a] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-xl font-semibold text-[#C5B239]">Preview & Adjust Image</h3>
+              <button
+                onClick={handleCancelImage}
+                className="text-gray-400 hover:text-white transition"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Image Preview Area */}
+            <div className="flex-1 overflow-auto p-6 bg-[#0a0a0a] flex items-center justify-center">
+              {imagePreview && (
+                <div className="relative max-w-full max-h-full flex items-center justify-center">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{
+                      transform: `scale(${imageZoom})`,
+                      transition: 'transform 0.2s ease',
+                      maxWidth: '100%',
+                      maxHeight: '70vh',
+                      objectFit: 'contain'
+                    }}
+                    className="rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Controls */}
+            <div className="p-4 border-t border-gray-700 space-y-4">
+              {/* Zoom Slider */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm text-gray-400">Zoom</label>
+                  <span className="text-sm text-[#C5B239]">{Math.round(imageZoom * 100)}%</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setImageZoom(Math.max(0.5, imageZoom - 0.1))}
+                    className="bg-[#2a2a2a] hover:bg-[#333] text-white p-2 rounded-lg transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  </button>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2"
+                    step="0.1"
+                    value={imageZoom}
+                    onChange={(e) => setImageZoom(parseFloat(e.target.value))}
+                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, #C5B239 0%, #C5B239 ${((imageZoom - 0.5) / 1.5) * 100}%, #374151 ${((imageZoom - 0.5) / 1.5) * 100}%, #374151 100%)`
+                    }}
+                  />
+                  <button
+                    onClick={() => setImageZoom(Math.min(2, imageZoom + 0.1))}
+                    className="bg-[#2a2a2a] hover:bg-[#333] text-white p-2 rounded-lg transition"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setImageZoom(1)}
+                    className="bg-[#2a2a2a] hover:bg-[#333] text-white px-3 py-2 rounded-lg transition text-sm"
+                  >
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancelImage}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-3 rounded-lg transition font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmImage}
+                  className="flex-1 bg-[#C5B239] hover:bg-[#b9a531] text-black py-3 rounded-lg transition font-medium"
+                >
+                  Use This Image
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-500 text-center">
+                Tip: Adjust the zoom to fit your image perfectly. The image will be optimized for posting.
+              </p>
+            </div>
           </div>
         </div>
       )}
