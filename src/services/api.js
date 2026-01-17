@@ -143,4 +143,139 @@ export const eventsAPI = {
   },
 };
 
+// Jobs API calls
+export const jobsAPI = {
+  // Get all approved jobs
+  getAll: async (params = {}) => {
+    const response = await api.get('/jobs', { params });
+    return response.data;
+  },
+
+  // Get job by ID
+  getById: async (id) => {
+    const response = await api.get(`/jobs/${id}`);
+    return response.data;
+  },
+
+  // Create job directly (admin only)
+  create: async (jobData) => {
+    const response = await api.post('/jobs/create', jobData);
+    return response.data;
+  },
+
+  // Request job posting (alumni only)
+  requestJob: async (jobData) => {
+    const response = await api.post('/jobs/request', jobData);
+    return response.data;
+  },
+
+  // Apply for a job (students and alumni)
+  apply: async (jobId, applicationData) => {
+    const response = await api.post(`/jobs/apply/${jobId}`, applicationData);
+    return response.data;
+  },
+
+  // Get pending job requests (admin only)
+  getPendingRequests: async (params = {}) => {
+    const response = await api.get('/jobs/pending/requests', { params });
+    return response.data;
+  },
+
+  // Approve job request (admin only)
+  approveRequest: async (requestId) => {
+    const response = await api.post(`/jobs/approve/${requestId}`);
+    return response.data;
+  },
+
+  // Reject job request (admin only)
+  rejectRequest: async (requestId, rejectionReason = '') => {
+    const response = await api.post(`/jobs/reject/${requestId}`, {
+      rejection_reason: rejectionReason,
+    });
+    return response.data;
+  },
+
+  // Get my applications (students and alumni)
+  getMyApplications: async () => {
+    const response = await api.get('/jobs/my/applications');
+    return response.data;
+  },
+
+  // Get my job requests (alumni only)
+  getMyRequests: async () => {
+    const response = await api.get('/jobs/my/requests');
+    return response.data;
+  },
+
+  // Get applications for a job (admin or job poster only)
+  getJobApplications: async (jobId) => {
+    const response = await api.get(`/jobs/${jobId}/applications`);
+    return response.data;
+  },
+
+  // Delete a job (admin or job poster only)
+  delete: async (jobId) => {
+    const response = await api.delete(`/jobs/${jobId}`);
+    return response.data;
+  },
+};
+
+// Posts API calls
+export const postsAPI = {
+  // Get all posts (paginated feed)
+  getAll: async (params = { page: 1, limit: 10 }) => {
+    const response = await api.get('/posts', { params });
+    return response.data;
+  },
+
+  // Create a post (with optional image)
+  create: async (postData) => {
+    // Use FormData for image uploads
+    const formData = new FormData();
+    formData.append('content', postData.content);
+    if (postData.image) {
+      formData.append('image', postData.image);
+    }
+
+    const response = await api.post('/posts', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  // Delete a post (author or admin only)
+  delete: async (postId) => {
+    const response = await api.delete(`/posts/${postId}`);
+    return response.data;
+  },
+
+  // Like a post
+  like: async (postId) => {
+    const response = await api.post(`/posts/${postId}/like`);
+    return response.data;
+  },
+
+  // Unlike a post
+  unlike: async (postId) => {
+    const response = await api.delete(`/posts/${postId}/like`);
+    return response.data;
+  },
+
+  // Get comments for a post
+  getComments: async (postId) => {
+    const response = await api.get(`/posts/${postId}/comments`);
+    return response.data;
+  },
+
+  // Add a comment
+  addComment: async (postId, commentText) => {
+    const response = await api.post(`/posts/${postId}/comments`, {
+      comment_text: commentText,
+    });
+    return response.data;
+  },
+};
+
 export default api;
