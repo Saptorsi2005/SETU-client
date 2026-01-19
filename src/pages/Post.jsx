@@ -5,6 +5,18 @@ import { assets } from "../assets/assets"; // Import your assets here
 import { useUser } from "../context/UserContext";
 import { jobsAPI, postsAPI } from "../services/api";
 import { FaTimes, FaBriefcase, FaMapMarkerAlt, FaBuilding, FaUserTie } from "react-icons/fa";
+import axios from "axios";
+
+const mentorAvatars = [
+  assets.person1,
+  assets.person2,
+  assets.person3,
+  assets.person4,
+  assets.person5,
+  assets.person6,
+];
+const getRandomAvatar = () =>
+  mentorAvatars[Math.floor(Math.random() * mentorAvatars.length)];
 
 
 const Post = () => {
@@ -13,6 +25,9 @@ const Post = () => {
   const { user } = useUser();
 
   const [searchQuery, setSearchQuery] = useState("");
+ 
+
+
   // Jobs state
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
@@ -44,26 +59,43 @@ const Post = () => {
     requirements: "",
   });
 
-  const [recommendedMentors, setRecommendedMentors] = useState([
-    { id: 1, name: "Sneha Patel", skill: "UI/UX Design", match: 95, avatar: assets.person5 },
-    { id: 2, name: "Aarav Mehta", skill: "Full Stack Development", match: 92, avatar: assets.person1 },
-    { id: 3, name: "Riya Sharma", skill: "Data Science & ML", match: 87, avatar: assets.person3 },
-    { id: 4, name: "Vikram Nair", skill: "Cybersecurity", match: 81, avatar: assets.person2 },
-    { id: 5, name: "Kunal Sinha", skill: "Backend Engineering", match: 78, avatar: assets.person4 },
-    { id: 6, name: "Neha Reddy", skill: "Product Management", match: 76, avatar: assets.person6 },
-    { id: 7, name: "Ishaan Roy", skill: "Mobile Development", match: 73, avatar: assets.person3 },
-    { id: 8, name: "Divya Nair", skill: "QA Automation", match: 70, avatar: assets.person2 },
-  ]);
+  const [recommendedMentors, setRecommendedMentors] = useState([]);
 
   const [connections, setConnections] = useState([]);
+useEffect(() => {
+  const fetchMentors = async () => {
+    try {
+      const res = await axios.post(
+        "http://127.0.0.1:8000/mentor-recommend",
+        { skills: "C C++ Java Backend,Spring Boot" }
+      );
 
-  const handleConnect = (mentor) => {
-    setConnections((prev) => [...prev, mentor]);
-    setRecommendedMentors((prev) =>
-      prev.filter((m) => m.id !== mentor.id)
-    );
-    setActiveTab("connections"); // optional but UX-friendly
+      console.log("Mentor API raw data:", res.data);
+
+      const formatted = res.data.map((m, index) => ({
+        id: index + 1,
+        name: m.Mentor_Name,
+        skill: m.Expertise,
+        match: Math.min(95, Math.round(m.Score * 100)),
+        avatar: getRandomAvatar(), // ✅ yahin sahi hai
+      })); // 👈 IMPORTANT: map close here
+
+      setRecommendedMentors(formatted); // 👈 ab yahan sahi hai
+    } catch (err) {
+      console.error("Mentor API error:", err);
+    }
   };
+
+  fetchMentors();
+}, []);
+
+const handleConnect = (mentor) => {
+  setRecommendedMentors((prev) =>
+    prev.filter((m) => m.id !== mentor.id)
+  );
+
+  setActiveTab("connections"); // optional
+};
 
 
   const [posts, setPosts] = useState([]);
@@ -493,7 +525,7 @@ const Post = () => {
       m.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => b.match - a.match)
-    .slice(0, 10);
+    .slice(0, 50);
 
 
 

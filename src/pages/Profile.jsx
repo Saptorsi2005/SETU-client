@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getMentorRecommendations } from "../services/mentorService";
+
 import {
   FaLinkedin,
   FaGithub,
@@ -78,32 +78,11 @@ const PRONOUN_OPTIONS = [
 
 const Profile = () => {
   const [profile, setProfile] = useState(initialProfile);
-  const [mentors, setMentors] = useState([]);
+
 
   const token = localStorage.getItem("token");
 
-  /* -------- Fetch Mentor Recommendations -------- */
- useEffect(() => {
-  const fetchMentors = async () => {
-    try {
-      const skillsText = profile.skills.join(" ");
-const data = await getMentorRecommendations(token, skillsText);
-
-      // 🔥 STEP-2 CONSOLE (YAHI ADD KARNA THA)
-      console.log("MENTORS FROM BACKEND 👉", data);
-
-      setMentors(data);
-    } catch (error) {
-      console.error("Failed to fetch mentors", error);
-    }
-  };
-
-  if (token) {
-    fetchMentors();
-  } else {
-    console.log("NO TOKEN FOUND");
-  }
-}, [token]);
+  
 
 
   /* Top section edit */
@@ -233,40 +212,9 @@ const data = await getMentorRecommendations(token, skillsText);
             )
           )}
         </div>
-
+            </div>
         {/* ------------------ MENTOR RECOMMENDATIONS ------------------ */}
-        <div className="w-full max-w-5xl mt-10">
-          <h2 className="text-2xl font-bold text-white mb-4">
-            Recommended Mentors
-          </h2>
-
-          {mentors.length === 0 && (
-            <p className="text-gray-400">
-              No mentor recommendations yet.
-            </p>
-          )}
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {mentors.map((mentor, index) => (
-              <div
-                key={index}
-                className="bg-gray-800/90 border border-gray-700 rounded-xl p-5 text-white shadow-md"
-              >
-                <h3 className="text-lg font-semibold text-[#C5B239]">
-                  {mentor.Mentor_Name}
-                </h3>
-                <p className="text-sm text-gray-300">
-                  <strong>Expertise:</strong> {mentor.Expertise}
-                </p>
-                <p className="text-sm text-gray-300">
-                  <strong>Experience:</strong> {mentor.Experience} years
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
+    
       {/* ------------------ MODAL ------------------ */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">

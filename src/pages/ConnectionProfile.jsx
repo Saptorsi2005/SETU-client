@@ -2,9 +2,13 @@ import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { assets } from "../assets/assets"; // ✅ import assets
 
+
 const ConnectionProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+
+
 
   // Mock user data for demo (you can replace this with your backend data later)
   const users = [
@@ -43,6 +47,12 @@ const ConnectionProfile = () => {
             Enthusiastic tech professional focused on building impactful software
             products and mentoring peers.
           </p>
+            <button
+  onClick={() => navigate(`/messages/${user.id}`)}
+  className="mt-6 bg-[#C5B239] text-black px-6 py-2 rounded-md hover:bg-[#b9a531]"
+>
+  Message
+</button>
         </div>
       </div>
     </div>
