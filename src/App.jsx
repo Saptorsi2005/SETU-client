@@ -20,6 +20,8 @@ import Admin_Dashboard from "./pages/Admin_Dashboard";
 import Directory from "./pages/Directory";
 import Dashboard from "./pages/Dashboard";
 import Admin_Jobs from "./pages/Admin_Jobs";
+import StudentSignup from "./pages/StudentSignup";
+import AlumniSignup from "./pages/AlumniSignup";
 // import Feed from "./pages/Feed";
 
 function App() {
@@ -48,6 +50,8 @@ function App() {
         <Route path="/directory" element={<Directory />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin-jobs" element={<Admin_Jobs />} />
+        <Route path="/student-signup" element={<StudentSignup />} />
+        <Route path="/alumni-signup" element={<AlumniSignup />} />
       </Routes>
     </div>
 

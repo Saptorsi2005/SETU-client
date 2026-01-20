@@ -61,7 +61,7 @@ const StudentLogin = () => {
   };
 
   const goToSignup = () => {
-    navigate("/studentSignup");
+    navigate("/student-signup");
   };
 
   return (
@@ -135,7 +135,7 @@ const StudentLogin = () => {
         <p className="text-center text-white mt-4">
           Don't have an account?{" "}
           <button
-            onClick={() => navigate("/studentSignup")}
+            onClick={() => navigate("/student-signup")}
             className="underline font-semibold hover:text-gray-300 focus:outline-none"
             type="button"
             disabled={loading}
