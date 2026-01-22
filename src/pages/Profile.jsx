@@ -82,7 +82,7 @@ const Profile = () => {
 
   const token = localStorage.getItem("token");
 
-  
+
 
 
   /* Top section edit */
@@ -106,26 +106,26 @@ const Profile = () => {
   };
 
   const handleSaveList = async () => {
-  const cleaned = inputValues.map(v => v.trim()).filter(Boolean);
+    const cleaned = inputValues.map(v => v.trim()).filter(Boolean);
 
-  try {
-    await authAPI.updateProfile({
-      ...profile,
-      [modalField]: cleaned,
-    });
+    try {
+      await authAPI.updateProfile({
+        ...profile,
+        [modalField]: cleaned,
+      });
 
-    // frontend state update
-    setProfile(prev => ({
-      ...prev,
-      [modalField]: cleaned,
-    }));
+      // frontend state update
+      setProfile(prev => ({
+        ...prev,
+        [modalField]: cleaned,
+      }));
 
-    setModalOpen(false);
-  } catch (error) {
-    console.error("Profile update failed", error);
-    alert("Profile update failed");
-  }
-};
+      setModalOpen(false);
+    } catch (error) {
+      console.error("Profile update failed", error);
+      alert("Profile update failed");
+    }
+  };
 
 
 
@@ -191,6 +191,72 @@ const Profile = () => {
                 <p className="text-gray-200">{profile.bio}</p>
               </>
             )}
+            {editingTop && (
+              <div className="mt-3 space-y-3">
+                <input
+                  className="w-full bg-gray-800 text-white p-2 rounded"
+                  value={topDraft.name}
+                  onChange={(e) =>
+                    setTopDraft({ ...topDraft, name: e.target.value })
+                  }
+                />
+
+                <select
+                  className="w-full bg-gray-800 text-white p-2 rounded"
+                  value={topDraft.pronouns}
+                  onChange={(e) =>
+                    setTopDraft({ ...topDraft, pronouns: e.target.value })
+                  }
+                >
+                  {PRONOUN_OPTIONS.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
+
+                <input
+                  className="w-full bg-gray-800 text-white p-2 rounded"
+                  value={topDraft.degree}
+                  onChange={(e) =>
+                    setTopDraft({ ...topDraft, degree: e.target.value })
+                  }
+                />
+
+                <textarea
+                  className="w-full bg-gray-800 text-white p-2 rounded h-24"
+                  value={topDraft.bio}
+                  onChange={(e) =>
+                    setTopDraft({ ...topDraft, bio: e.target.value })
+                  }
+                />
+
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={() => setEditingTop(false)}
+                    className="px-4 py-1 bg-gray-600 rounded"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      try {
+                        await authAPI.updateProfile(topDraft);
+                        setProfile((prev) => ({ ...prev, ...topDraft }));
+                        setEditingTop(false);
+                      } catch (e) {
+                        alert("Update failed");
+                      }
+                    }}
+                    className="px-4 py-1 bg-[#C5B239] text-black rounded"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
@@ -212,9 +278,9 @@ const Profile = () => {
             )
           )}
         </div>
-            </div>
-        {/* ------------------ MENTOR RECOMMENDATIONS ------------------ */}
-    
+      </div>
+      {/* ------------------ MENTOR RECOMMENDATIONS ------------------ */}
+
       {/* ------------------ MODAL ------------------ */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
