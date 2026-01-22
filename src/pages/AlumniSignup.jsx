@@ -16,9 +16,6 @@ const AlumniSignup = () => {
     graduationYear: "",
   });
 
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
   const [document, setDocument] = useState(null);
 
   const [loading, setLoading] = useState(false);
@@ -29,42 +26,8 @@ const AlumniSignup = () => {
     setError("");
   };
 
-  const sendOtp = async () => {
-    if (!formData.email) {
-      setError("Enter your email first.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await authAPI.sendOtp({ email: formData.email });
-      setOtpSent(true);
-    } catch {
-      setError("Failed to send OTP.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyOtp = async () => {
-    try {
-      setLoading(true);
-      await authAPI.verifyOtp({ email: formData.email, otp });
-      setEmailVerified(true);
-    } catch {
-      setError("Invalid OTP.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!emailVerified) {
-      setError("Please verify your email.");
-      return;
-    }
 
     if (!document) {
       setError("Verification document is required.");
@@ -72,17 +35,38 @@ const AlumniSignup = () => {
     }
 
     const payload = new FormData();
-    Object.keys(formData).forEach((key) =>
-      payload.append(key, formData[key])
-    );
-    payload.append("document", document);
+    payload.append("name", formData.name);
+    payload.append("email", formData.email);
+    payload.append("password", formData.password);
+    payload.append("college", "Academy of Technology");
+    payload.append("batch_year", formData.graduationYear);
+    payload.append("current_company", formData.company);
+    payload.append("current_position", formData.designation);
+    payload.append("verification_document", document);
 
     try {
       setLoading(true);
-      await authAPI.alumniSignup(payload);
-      navigate("/alumni-login");
+      
+      const response = await fetch('http://localhost:5000/api/auth/alumni/signup', {
+        method: 'POST',
+        body: payload,
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Signup failed');
+      }
+      
+      // Store token and user data
+      if (data.data?.token) {
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+      }
+      
+      navigate("/alumniLogin");
     } catch (err) {
-      setError(err.response?.data?.message || "Signup failed.");
+      setError(err.message || "Signup failed.");
     } finally {
       setLoading(false);
     }
@@ -136,43 +120,14 @@ const AlumniSignup = () => {
             required
           />
 
-          {/* Email + OTP */}
-          <div className="flex gap-2">
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              onChange={handleChange}
-              className="flex-1 border border-white/50 px-4 py-2 rounded-xl bg-white/60"
-              required
-            />
-            <button
-              type="button"
-              onClick={sendOtp}
-              disabled={loading}
-              className="bg-white/30 text-white px-4 py-2 rounded-xl text-sm hover:bg-white/50 transition"
-            >
-              OTP
-            </button>
-          </div>
-
-          {otpSent && !emailVerified && (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter OTP"
-                onChange={(e) => setOtp(e.target.value)}
-                className="flex-1 border border-white/50 px-4 py-2 rounded-xl bg-white/60"
-              />
-              <button
-                type="button"
-                onClick={verifyOtp}
-                className="bg-white/30 text-white px-4 py-2 rounded-xl text-sm hover:bg-white/50"
-              >
-                Verify
-              </button>
-            </div>
-          )}
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            onChange={handleChange}
+            className="border border-white/50 px-4 py-2 rounded-xl bg-white/60 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/70"
+            required
+          />
 
           <input
             type="password"
@@ -213,13 +168,14 @@ const AlumniSignup = () => {
           {/* Document Upload */}
           <label className="cursor-pointer bg-white/30 text-white py-2 px-4 rounded-xl text-center hover:bg-white/50 transition">
             {document
-              ? "Document Selected"
-              : "Upload Verification Document"}
+              ? "Document Selected ✓"
+              : "Upload Verification Document *"}
             <input
               type="file"
               accept="image/*,.pdf"
               className="hidden"
               onChange={(e) => setDocument(e.target.files[0])}
+              required
             />
           </label>
 

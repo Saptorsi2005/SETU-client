@@ -16,9 +16,6 @@ const StudentSignup = () => {
     graduationYear: "",
   });
 
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [emailVerified, setEmailVerified] = useState(false);
   const [idCard, setIdCard] = useState(null);
 
   const [loading, setLoading] = useState(false);
@@ -29,42 +26,8 @@ const StudentSignup = () => {
     setError("");
   };
 
-  const sendOtp = async () => {
-    if (!formData.email) {
-      setError("Enter your college email first.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await authAPI.sendOtp({ email: formData.email });
-      setOtpSent(true);
-    } catch {
-      setError("Failed to send OTP.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyOtp = async () => {
-    try {
-      setLoading(true);
-      await authAPI.verifyOtp({ email: formData.email, otp });
-      setEmailVerified(true);
-    } catch {
-      setError("Invalid OTP.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!emailVerified) {
-      setError("Please verify your email.");
-      return;
-    }
 
     if (!idCard) {
       setError("Student ID card is required.");
@@ -72,17 +35,34 @@ const StudentSignup = () => {
     }
 
     const payload = new FormData();
-    Object.keys(formData).forEach((key) =>
-      payload.append(key, formData[key])
-    );
-    payload.append("idCard", idCard);
+    payload.append("full_name", formData.name);
+    payload.append("email", formData.email);
+    payload.append("password", formData.password);
+    payload.append("roll_number", formData.rollNumber);
+    payload.append("department", formData.department);
+    payload.append("graduation_year", formData.graduationYear);
+    payload.append("student_id_card", idCard);
 
     try {
       setLoading(true);
-      await authAPI.studentSignup(payload);
-      navigate("/student-login");
+      const response = await fetch('http://localhost:5000/api/auth/student/signup', {
+        method: 'POST',
+        body: payload,
+      });
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Signup failed');
+      }
+      
+      // Store token and redirect to login
+      if (data.data?.token) {
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.student));
+      }
+      navigate("/studentLogin");
     } catch (err) {
-      setError(err.response?.data?.message || "Signup failed.");
+      setError(err.message || "Signup failed.");
     } finally {
       setLoading(false);
     }
@@ -136,43 +116,14 @@ const StudentSignup = () => {
             required
           />
 
-          {/* Email + OTP */}
-          <div className="flex gap-2">
-            <input
-              type="email"
-              name="email"
-              placeholder="College Email"
-              onChange={handleChange}
-              className="flex-1 border border-white/50 px-4 py-2 rounded-xl bg-white/60 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/70"
-              required
-            />
-            <button
-              type="button"
-              onClick={sendOtp}
-              disabled={loading}
-              className="bg-white/30 text-white px-4 py-2 rounded-xl text-sm hover:bg-white/50 transition"
-            >
-              OTP
-            </button>
-          </div>
-
-          {otpSent && !emailVerified && (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter OTP"
-                onChange={(e) => setOtp(e.target.value)}
-                className="flex-1 border border-white/50 px-4 py-2 rounded-xl bg-white/60"
-              />
-              <button
-                type="button"
-                onClick={verifyOtp}
-                className="bg-white/30 text-white px-4 py-2 rounded-xl text-sm hover:bg-white/50"
-              >
-                Verify
-              </button>
-            </div>
-          )}
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            onChange={handleChange}
+            className="border border-white/50 px-4 py-2 rounded-xl bg-white/60 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/70"
+            required
+          />
 
           <input
             type="password"
