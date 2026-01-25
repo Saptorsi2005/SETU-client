@@ -17,11 +17,11 @@ import ConnectionProfile from "./pages/ConnectionProfile";
 import Map from "./pages/Map";
 import Messages from "./pages/Messages";
 import Admin_Dashboard from "./pages/Admin_Dashboard";
-import Directory from "./pages/Directory";
 import Dashboard from "./pages/Dashboard";
 import Admin_Jobs from "./pages/Admin_Jobs";
 import StudentSignup from "./pages/StudentSignup";
 import AlumniSignup from "./pages/AlumniSignup";
+import Admin_Directory from "./pages/Admin_Directory";
 // import Feed from "./pages/Feed";
 
 function App() {
@@ -47,7 +47,7 @@ function App() {
         <Route path="/map" element={<Map />} />
         <Route path="/messages" element={<Messages />} />
         <Route path="/admin-dashboard" element={<Admin_Dashboard />} />
-        <Route path="/directory" element={<Directory />} />
+        <Route path="/directory" element={<Admin_Directory />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin-jobs" element={<Admin_Jobs />} />
         <Route path="/student-signup" element={<StudentSignup />} />

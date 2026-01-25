@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 
-const Directory = () => {
+const Admin_Directory = () => {
   const alumniData = [
     {
       name: "Riya Sen",
@@ -224,4 +224,4 @@ const Directory = () => {
   );
 };
 
-export default Directory;
+export default Admin_Directory;
