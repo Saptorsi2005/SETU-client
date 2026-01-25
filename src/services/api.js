@@ -69,6 +69,18 @@ export const authAPI = {
     const response = await api.put('/auth/profile', profileData);
     return response.data;
   },
+
+  // Upload profile picture
+  uploadProfilePicture: async (imageFile) => {
+    const formData = new FormData();
+    formData.append('profile_picture', imageFile);
+    const response = await api.post('/auth/profile/upload-picture', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
 };
 
 // Admin API calls
