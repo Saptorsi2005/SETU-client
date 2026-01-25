@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { assets } from "../assets/assets"; // Import your assets here
+import { assets } from "../assets/assets";
 import { useUser } from "../context/UserContext";
-import { jobsAPI, postsAPI } from "../services/api";
-import { FaTimes, FaBriefcase, FaMapMarkerAlt, FaBuilding, FaUserTie } from "react-icons/fa";
+import { jobsAPI, postsAPI, connectionsAPI } from "../services/api";
+import {
+  FaTimes,
+  FaBriefcase,
+  FaMapMarkerAlt,
+  FaBuilding,
+  FaUserTie,
+  FaTrash,
+} from "react-icons/fa";
 import axios from "axios";
 
 const mentorAvatars = [
@@ -15,9 +22,9 @@ const mentorAvatars = [
   assets.person5,
   assets.person6,
 ];
+
 const getRandomAvatar = () =>
   mentorAvatars[Math.floor(Math.random() * mentorAvatars.length)];
-
 
 const Post = () => {
   const [activeTab, setActiveTab] = useState("recommendations");
@@ -25,14 +32,16 @@ const Post = () => {
   const { user } = useUser();
 
   const [searchQuery, setSearchQuery] = useState("");
- 
-
 
   // Jobs state
   const [jobs, setJobs] = useState([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(null);
   const [showAddJobModal, setShowAddJobModal] = useState(false);
+
+  // Alumni job requests state
+  const [myJobRequests, setMyJobRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
 
   // Application form state
   const [applicationData, setApplicationData] = useState({
@@ -49,7 +58,6 @@ const Post = () => {
     additional_details: "",
   });
 
-
   // Job creation/request form state
   const [jobFormData, setJobFormData] = useState({
     title: "",
@@ -60,43 +68,122 @@ const Post = () => {
   });
 
   const [recommendedMentors, setRecommendedMentors] = useState([]);
+  const [connectedMentorNames, setConnectedMentorNames] = useState(new Set());
 
   const [connections, setConnections] = useState([]);
-useEffect(() => {
-  const fetchMentors = async () => {
+
+  // Fetch existing connections on mount
+  useEffect(() => {
+    const fetchConnections = async () => {
+      if (!user) return;
+
+      try {
+        const response = await connectionsAPI.getAll();
+        if (response.success) {
+          // Format connections for display
+          const formattedConnections = response.connections.map((conn) => ({
+            id: conn.connection_id,
+            name: conn.mentor_name,
+            skill: conn.mentor_skill,
+            avatar: conn.mentor_avatar || assets.person1,
+            match: conn.match_score,
+          }));
+
+          setConnections(formattedConnections);
+
+          // Track connected mentor names
+          const connectedNames = new Set(
+            response.connections.map((c) => c.mentor_name)
+          );
+          setConnectedMentorNames(connectedNames);
+        }
+      } catch (error) {
+        console.error("Failed to fetch connections:", error);
+      }
+    };
+
+    fetchConnections();
+  }, [user]);
+
+  // Fetch mentors from AI model
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const res = await axios.post("http://127.0.0.1:8000/mentor-recommend", {
+          skills: "C C++ Java Backend,Spring Boot",
+        });
+
+        console.log("Mentor API raw data:", res.data);
+
+        const formatted = res.data.map((m, index) => ({
+          id: index + 1,
+          name: m.Mentor_Name,
+          skill: m.Expertise,
+          match: Math.min(95, Math.round(m.Score * 100)),
+          avatar: getRandomAvatar(),
+        }));
+
+        setRecommendedMentors(formatted);
+      } catch (err) {
+        console.error("Mentor API error:", err);
+      }
+    };
+
+    fetchMentors();
+  }, []);
+
+  const handleConnect = async (mentor) => {
     try {
-      const res = await axios.post(
-        "http://127.0.0.1:8000/mentor-recommend",
-        { skills: "C C++ Java Backend,Spring Boot" }
-      );
+      // Check if user is logged in
+      if (!user) {
+        alert("Please log in to connect with mentors");
+        return;
+      }
 
-      console.log("Mentor API raw data:", res.data);
+      // Save connection to database
+      const response = await connectionsAPI.create({
+        mentor_name: mentor.name,
+        mentor_skill: mentor.skill,
+        mentor_avatar: mentor.avatar,
+        match_score: mentor.match,
+        mentor_identifier: `${mentor.id}`,
+      });
 
-      const formatted = res.data.map((m, index) => ({
-        id: index + 1,
-        name: m.Mentor_Name,
-        skill: m.Expertise,
-        match: Math.min(95, Math.round(m.Score * 100)),
-        avatar: getRandomAvatar(), // ✅ yahin sahi hai
-      })); // 👈 IMPORTANT: map close here
+      if (response.success) {
+        // Update local state immediately
+        setConnectedMentorNames((prev) => new Set([...prev, mentor.name]));
 
-      setRecommendedMentors(formatted); // 👈 ab yahan sahi hai
-    } catch (err) {
-      console.error("Mentor API error:", err);
+        // Remove from recommendations
+        setRecommendedMentors((prev) => prev.filter((m) => m.id !== mentor.id));
+
+        // Optionally add to connections immediately
+        setConnections((prev) => [
+          {
+            id: response.connection.connection_id,
+            name: mentor.name,
+            skill: mentor.skill,
+            avatar: mentor.avatar,
+            match: mentor.match,
+          },
+          ...prev,
+        ]);
+
+        alert(`Successfully connected with ${mentor.name}!`);
+        setActiveTab("connections");
+      }
+    } catch (error) {
+      console.error("Failed to connect:", error);
+
+      // Handle duplicate connection
+      if (error.response?.data?.alreadyConnected) {
+        alert("You are already connected with this mentor");
+        setConnectedMentorNames((prev) => new Set([...prev, mentor.name]));
+        setRecommendedMentors((prev) => prev.filter((m) => m.id !== mentor.id));
+      } else {
+        alert("Failed to connect with mentor. Please try again.");
+      }
     }
   };
-
-  fetchMentors();
-}, []);
-
-const handleConnect = (mentor) => {
-  setRecommendedMentors((prev) =>
-    prev.filter((m) => m.id !== mentor.id)
-  );
-
-  setActiveTab("connections"); // optional
-};
-
 
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
@@ -115,14 +202,13 @@ const handleConnect = (mentor) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageZoom, setImageZoom] = useState(1);
 
-
   // 🔹 Create Post handler
   const handleCreatePost = async () => {
     if (!newPost.text.trim() && !newPost.image) {
       alert("Please enter some text or select an image");
       return;
     }
-    
+
     if (!user) {
       alert("Please log in to create a post");
       return;
@@ -130,7 +216,7 @@ const handleConnect = (mentor) => {
 
     try {
       console.log("Creating post...", { user, content: newPost.text });
-      
+
       const response = await postsAPI.create({
         content: newPost.text,
         image: newPost.image,
@@ -147,6 +233,8 @@ const handleConnect = (mentor) => {
           content: response.post.content,
           image_url: response.post.image_url,
           created_at: response.post.created_at,
+          author_name: response.post.author_name,
+          author_avatar: response.post.author_avatar,
           likes_count: response.post.likes_count || 0,
           comments_count: response.post.comments_count || 0,
           is_liked: response.post.is_liked || false,
@@ -158,7 +246,8 @@ const handleConnect = (mentor) => {
       }
     } catch (error) {
       console.error("Failed to create post:", error);
-      const errorMsg = error.response?.data?.message || error.message || "Unknown error";
+      const errorMsg =
+        error.response?.data?.message || error.message || "Unknown error";
       alert(`Failed to create post: ${errorMsg}`);
     }
   };
@@ -174,7 +263,7 @@ const handleConnect = (mentor) => {
       }
 
       // Validate file type
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         alert("Please select a valid image file");
         return;
       }
@@ -190,20 +279,18 @@ const handleConnect = (mentor) => {
   const handleConfirmImage = async () => {
     if (!tempImageFile) return;
 
-    // Create a canvas to resize the image
     const img = new Image();
     img.src = imagePreview;
-    
+
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Calculate dimensions (max width/height 1200px to keep quality but reduce size)
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
       const MAX_WIDTH = 1200;
       const MAX_HEIGHT = 1200;
       let width = img.width;
       let height = img.height;
-      
+
       if (width > height) {
         if (width > MAX_WIDTH) {
           height *= MAX_WIDTH / width;
@@ -215,28 +302,29 @@ const handleConnect = (mentor) => {
           height = MAX_HEIGHT;
         }
       }
-      
-      // Apply zoom
+
       width *= imageZoom;
       height *= imageZoom;
-      
+
       canvas.width = width;
       canvas.height = height;
-      
-      // Draw image on canvas
+
       ctx.drawImage(img, 0, 0, width, height);
-      
-      // Convert canvas to blob
-      canvas.toBlob((blob) => {
-        const processedFile = new File([blob], tempImageFile.name, {
-          type: tempImageFile.type,
-          lastModified: Date.now(),
-        });
-        
-        setNewPost({ ...newPost, image: processedFile });
-        setShowImageModal(false);
-        setTempImageFile(null);
-      }, tempImageFile.type, 0.9);
+
+      canvas.toBlob(
+        (blob) => {
+          const processedFile = new File([blob], tempImageFile.name, {
+            type: tempImageFile.type,
+            lastModified: Date.now(),
+          });
+
+          setNewPost({ ...newPost, image: processedFile });
+          setShowImageModal(false);
+          setTempImageFile(null);
+        },
+        tempImageFile.type,
+        0.9
+      );
     };
   };
 
@@ -266,15 +354,15 @@ const handleConnect = (mentor) => {
 
     try {
       const response = await postsAPI.delete(postId);
-      
+
       if (response.success) {
-        // Remove post from local state
         setPosts((prev) => prev.filter((post) => post.post_id !== postId));
         alert("Post deleted successfully!");
       }
     } catch (error) {
       console.error("Failed to delete post:", error);
-      const errorMsg = error.response?.data?.message || error.message || "Unknown error";
+      const errorMsg =
+        error.response?.data?.message || error.message || "Unknown error";
       alert(`Failed to delete post: ${errorMsg}`);
     }
   };
@@ -288,14 +376,15 @@ const handleConnect = (mentor) => {
         await postsAPI.like(postId);
       }
 
-      // Update local state
       setPosts((prev) =>
         prev.map((post) =>
           post.post_id === postId
             ? {
                 ...post,
                 is_liked: !isLiked,
-                likes_count: isLiked ? post.likes_count - 1 : post.likes_count + 1,
+                likes_count: isLiked
+                  ? post.likes_count - 1
+                  : post.likes_count + 1,
               }
             : post
         )
@@ -320,9 +409,8 @@ const handleConnect = (mentor) => {
 
     try {
       const response = await postsAPI.addComment(postId, text);
-      
+
       if (response.success) {
-        // Update comments count
         setPosts((prev) =>
           prev.map((post) =>
             post.post_id === postId
@@ -331,10 +419,8 @@ const handleConnect = (mentor) => {
           )
         );
 
-        // Clear comment text
         setCommentText((prev) => ({ ...prev, [postId]: "" }));
 
-        // If comments are visible, refresh them
         if (showComments[postId]) {
           fetchComments(postId);
         }
@@ -359,8 +445,7 @@ const handleConnect = (mentor) => {
   const toggleComments = (postId) => {
     const isCurrentlyShowing = showComments[postId];
     setShowComments((prev) => ({ ...prev, [postId]: !isCurrentlyShowing }));
-    
-    // Fetch comments if showing for the first time
+
     if (!isCurrentlyShowing && !comments[postId]) {
       fetchComments(postId);
     }
@@ -370,6 +455,7 @@ const handleConnect = (mentor) => {
   useEffect(() => {
     if (activeTab === "jobpost") {
       fetchJobs();
+      fetchMyJobRequests();
     }
   }, [activeTab]);
 
@@ -384,7 +470,7 @@ const handleConnect = (mentor) => {
     try {
       setLoadingPosts(true);
       const response = await postsAPI.getAll({ page: postsPage, limit: 10 });
-      
+
       if (response.success) {
         setPosts(response.posts);
         setHasMorePosts(response.pagination.hasMore);
@@ -411,6 +497,69 @@ const handleConnect = (mentor) => {
     }
   };
 
+  // Fetch alumni job requests
+  const fetchMyJobRequests = async () => {
+    if (user?.role !== "alumni") return;
+
+    try {
+      setLoadingRequests(true);
+      const response = await jobsAPI.getMyRequests();
+      if (response.success) {
+        setMyJobRequests(response.data || response.requests || []);
+      }
+    } catch (err) {
+      console.error("Error fetching job requests:", err);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  // Delete job handler
+  const handleDeleteJob = async (jobId) => {
+    if (!window.confirm("Are you sure you want to delete this job?")) {
+      return;
+    }
+
+    try {
+      const response = await jobsAPI.deleteJob(jobId);
+
+      if (response.success) {
+        setJobs((prev) => prev.filter((job) => job.job_id !== jobId));
+        alert("Job deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to delete job:", error);
+      const errorMsg =
+        error.response?.data?.message || error.message || "Failed to delete job";
+      alert(errorMsg);
+    }
+  };
+
+  // Delete pending job request handler (for alumni)
+  const handleDeletePendingRequest = async (requestId) => {
+    if (!window.confirm("Are you sure you want to delete this job request?")) {
+      return;
+    }
+
+    try {
+      const response = await jobsAPI.deletePendingRequest(requestId);
+
+      if (response.success) {
+        setMyJobRequests((prev) =>
+          prev.filter((req) => req.request_id !== requestId)
+        );
+        alert("Job request deleted successfully!");
+      }
+    } catch (error) {
+      console.error("Failed to delete job request:", error);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to delete job request";
+      alert(errorMsg);
+    }
+  };
+
   const handleApplyForJob = async (e) => {
     e.preventDefault();
 
@@ -426,7 +575,6 @@ const handleConnect = (mentor) => {
       alert("Please fill all required candidate details.");
       return;
     }
-
 
     try {
       const response = await jobsAPI.apply(showApplyModal, applicationData);
@@ -447,11 +595,14 @@ const handleConnect = (mentor) => {
           additional_details: "",
         });
 
-        fetchJobs(); // Refresh jobs to update application count
+        fetchJobs();
       }
     } catch (err) {
       console.error("Application error:", err);
-      alert(err.response?.data?.message || "Failed to submit application. Please try again.");
+      alert(
+        err.response?.data?.message ||
+          "Failed to submit application. Please try again."
+      );
     }
   };
 
@@ -461,7 +612,7 @@ const handleConnect = (mentor) => {
     console.log("=== Job Submission Debug ===");
     console.log("User from context:", user);
     console.log("User role:", user?.role);
-    console.log("Token in localStorage:", localStorage.getItem('token'));
+    console.log("Token in localStorage:", localStorage.getItem("token"));
 
     if (!jobFormData.title || !jobFormData.company || !jobFormData.description) {
       alert("Please fill in title, company, and description.");
@@ -471,11 +622,9 @@ const handleConnect = (mentor) => {
     try {
       let response;
       if (user?.role === "admin") {
-        // Admin creates job directly
         console.log("Admin creating job with data:", jobFormData);
         response = await jobsAPI.create(jobFormData);
       } else if (user?.role === "alumni") {
-        // Alumni submits request
         const requestData = {
           job_title: jobFormData.title,
           company: jobFormData.company,
@@ -487,14 +636,18 @@ const handleConnect = (mentor) => {
         response = await jobsAPI.requestJob(requestData);
         console.log("Response received:", response);
       } else {
-        alert("You don't have permission to create jobs. Your role: " + (user?.role || "not logged in"));
+        alert(
+          "You don't have permission to create jobs. Your role: " +
+            (user?.role || "not logged in")
+        );
         return;
       }
 
       if (response && response.success) {
-        const message = user?.role === "admin"
-          ? "Job created and published successfully!"
-          : "Job request submitted successfully! It will be visible after admin approval.";
+        const message =
+          user?.role === "admin"
+            ? "Job created and published successfully!"
+            : "Job request submitted successfully! It will be visible after admin approval.";
         alert(message);
         setShowAddJobModal(false);
         setJobFormData({
@@ -505,7 +658,9 @@ const handleConnect = (mentor) => {
           requirements: "",
         });
         if (user?.role === "admin") {
-          fetchJobs(); // Only refresh if admin (job is immediately visible)
+          fetchJobs();
+        } else if (user?.role === "alumni") {
+          fetchMyJobRequests();
         }
       }
     } catch (err) {
@@ -516,24 +671,25 @@ const handleConnect = (mentor) => {
       console.error("Error status:", err.response?.status);
       console.error("Error message:", err.message);
 
-      const errorMessage = err.response?.data?.message || err.message || "Failed to submit job request. Please try again.";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to submit job request. Please try again.";
       alert("ERROR: " + errorMessage);
     }
   };
+
+  // Filter mentors: exclude already connected ones, apply search, sort by match
   const filteredMentors = recommendedMentors
-    .filter((m) =>
-      m.name.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    .filter((m) => !connectedMentorNames.has(m.name))
+    .filter((m) => m.name.toLowerCase().includes(searchQuery.toLowerCase()))
     .sort((a, b) => b.match - a.match)
     .slice(0, 50);
-
-
-
-
 
   return (
     <div>
       <Navbar />
+
       <div className="pt-24 min-h-screen bg-[#0d0d0d] text-white p-6">
         {/* Navigation Tabs */}
         <div className="flex justify-center gap-6 border-b border-gray-700 pb-3 mb-6">
@@ -541,10 +697,11 @@ const handleConnect = (mentor) => {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`capitalize px-4 py-2 rounded-md font-medium transition-colors duration-200 ${activeTab === tab
-                ? "bg-[#C5B239] text-black"
-                : "text-gray-400 hover:text-[#C5B239]"
-                }`}
+              className={`capitalize px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
+                activeTab === tab
+                  ? "bg-[#C5B239] text-black"
+                  : "text-gray-400 hover:text-[#C5B239]"
+              }`}
             >
               {tab === "jobpost" ? "Job Post" : tab}
             </button>
@@ -617,14 +774,12 @@ const handleConnect = (mentor) => {
                       >
                         Connect
                       </button>
-
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
-
 
           {/* Connections */}
           {activeTab === "connections" && (
@@ -653,7 +808,9 @@ const handleConnect = (mentor) => {
                     .map((conn) => (
                       <div
                         key={conn.id}
-                        onClick={() => navigate(`/connectionProfile/${conn.id}`)}
+                        onClick={() =>
+                          navigate(`/connectionProfile/${conn.id}`)
+                        }
                         className="bg-[#1a1a1a] p-4 rounded-xl shadow-md flex justify-between items-center hover:bg-[#222] cursor-pointer transition-all"
                       >
                         <div className="flex items-center gap-3">
@@ -663,7 +820,9 @@ const handleConnect = (mentor) => {
                             className="w-12 h-12 rounded-full object-cover"
                           />
                           <div>
-                            <h3 className="font-semibold text-[#C5B239]">{conn.name}</h3>
+                            <h3 className="font-semibold text-[#C5B239]">
+                              {conn.name}
+                            </h3>
                             <p className="text-gray-400 text-sm">{conn.skill}</p>
                           </div>
                         </div>
@@ -681,11 +840,9 @@ const handleConnect = (mentor) => {
                     ))}
                 </div>
               )}
-
             </div>
           )}
 
-          {/* Feed */}
           {/* Feed */}
           {activeTab === "feed" && (
             <div className="space-y-4">
@@ -695,17 +852,29 @@ const handleConnect = (mentor) => {
               <div className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3">
                 <textarea
                   value={newPost.text}
-                  onChange={(e) => setNewPost({ ...newPost, text: e.target.value })}
+                  onChange={(e) =>
+                    setNewPost({ ...newPost, text: e.target.value })
+                  }
                   placeholder="Create a post..."
                   rows={3}
                   className="w-full bg-[#111] text-white p-3 rounded-lg outline-none resize-none"
                 />
-                
+
                 {/* Image upload button */}
                 <div className="flex items-center gap-3">
                   <label className="cursor-pointer bg-[#2a2a2a] hover:bg-[#333] text-gray-300 px-4 py-2 rounded-lg transition flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
                     Add Photo
                     <input
@@ -717,8 +886,16 @@ const handleConnect = (mentor) => {
                   </label>
                   {newPost.image && (
                     <span className="text-green-400 text-sm flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Image added
                     </span>
@@ -738,8 +915,18 @@ const handleConnect = (mentor) => {
                       className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition"
                       title="Remove image"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                   </div>
@@ -763,246 +950,378 @@ const handleConnect = (mentor) => {
               )}
 
               {/* Posts from API */}
-              {!loadingPosts && posts.map((post) => (
-                <div
-                  key={post.post_id}
-                  className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
-                >
-                  {/* Author Info with Delete Button */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={assets.person1}
-                        alt="User"
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <div>
-                        <h3 className="font-semibold text-[#C5B239]">
-                          {post.user_role === 'student' ? 'Student' : 'Alumni'} (ID: {post.user_id})
-                        </h3>
-                        <p className="text-gray-400 text-sm">{post.user_role}</p>
+              {!loadingPosts &&
+                posts.map((post) => (
+                  <div
+                    key={post.post_id}
+                    className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
+                  >
+                    {/* Author Info with Delete Button */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={post.author_avatar || assets.person1}
+                          alt="User"
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div>
+                          <h3 className="font-semibold text-[#C5B239]">
+                            {post.author_name ||
+                              `${
+                                post.user_role === "student"
+                                  ? "Student"
+                                  : "Alumni"
+                              } (ID: ${post.user_id})`}
+                          </h3>
+                          <p className="text-gray-400 text-sm">
+                            {post.user_role}
+                          </p>
+                        </div>
                       </div>
+
+                      {/* Delete button - only visible to post owner */}
+                      {user &&
+                        (user.id === post.user_id ||
+                          user.user_id === post.user_id ||
+                          user.student_id === post.user_id) && (
+                          <button
+                            onClick={() => handleDeletePost(post.post_id)}
+                            className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
+                            title="Delete post"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                        )}
                     </div>
 
-                    {/* Delete button - only visible to post owner */}
-                    {user && user.id === post.user_id && (
+                    {/* Post Text */}
+                    <p className="text-gray-300">{post.content}</p>
+
+                    {/* Post Image */}
+                    {post.image_url && (
+                      <div className="w-full rounded-lg overflow-hidden border border-gray-800 bg-black">
+                        <img
+                          src={post.image_url}
+                          alt="Post visual"
+                          className="w-full max-h-[600px] object-contain"
+                        />
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex justify-between mt-3 pt-2 border-t border-gray-700">
                       <button
-                        onClick={() => handleDeletePost(post.post_id)}
-                        className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
-                        title="Delete post"
+                        onClick={() => handleLike(post.post_id, post.is_liked)}
+                        className={`${
+                          post.is_liked ? "text-[#C5B239]" : "text-gray-400"
+                        } hover:text-[#C5B239] text-sm transition`}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                        👍 {post.is_liked ? "Liked" : "Like"} ({post.likes_count})
                       </button>
+
+                      <button
+                        onClick={() => toggleComments(post.post_id)}
+                        className="text-gray-400 hover:text-[#C5B239] text-sm transition"
+                      >
+                        💬 Comment ({post.comments_count})
+                      </button>
+
+                      <button className="text-gray-400 hover:text-[#C5B239] text-sm transition">
+                        ✉️ Message
+                      </button>
+                    </div>
+
+                    {/* Comments Section */}
+                    {showComments[post.post_id] && (
+                      <div className="mt-4 border-t border-gray-700 pt-4">
+                        {/* Add Comment Input */}
+                        <div className="flex gap-2 mb-4">
+                          <input
+                            type="text"
+                            value={commentText[post.post_id] || ""}
+                            onChange={(e) =>
+                              setCommentText((prev) => ({
+                                ...prev,
+                                [post.post_id]: e.target.value,
+                              }))
+                            }
+                            onKeyPress={(e) => {
+                              if (e.key === "Enter") {
+                                handleAddComment(post.post_id);
+                              }
+                            }}
+                            placeholder="Write a comment..."
+                            className="flex-1 bg-[#212529] border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5B239]"
+                          />
+                          <button
+                            onClick={() => handleAddComment(post.post_id)}
+                            className="bg-[#C5B239] text-black px-4 py-2 rounded-lg hover:bg-[#d4c04a] transition"
+                          >
+                            Post
+                          </button>
+                        </div>
+
+                        {/* Display Comments */}
+                        <div className="space-y-3">
+                          {comments[post.post_id]?.length > 0 ? (
+                            comments[post.post_id].map((comment) => (
+                              <div
+                                key={comment.comment_id}
+                                className="bg-[#212529] p-3 rounded-lg"
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className="w-6 h-6 rounded-full bg-[#C5B239] flex items-center justify-center text-black text-xs font-bold">
+                                    {comment.user_role?.charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="text-sm text-gray-400">
+                                    {comment.user_role}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {new Date(
+                                      comment.created_at
+                                    ).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <p className="text-gray-300 text-sm">
+                                  {comment.comment_text}
+                                </p>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-gray-500 text-sm text-center py-2">
+                              No comments yet. Be the first to comment!
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
-
-                  {/* Post Text */}
-                  <p className="text-gray-300">{post.content}</p>
-
-                  {/* Post Image from Cloudinary */}
-                  {post.image_url && (
-                    <div className="w-full rounded-lg overflow-hidden border border-gray-800 bg-black">
-                      <img
-                        src={post.image_url}
-                        alt="Post visual"
-                        className="w-full max-h-[600px] object-contain"
-                      />
-                    </div>
-                  )}
-
-
-                  {/* Actions */}
-                  <div className="flex justify-between mt-3 pt-2 border-t border-gray-700">
-                    <button
-                      onClick={() => handleLike(post.post_id, post.is_liked)}
-                      className={`${
-                        post.is_liked ? "text-[#C5B239]" : "text-gray-400"
-                      } hover:text-[#C5B239] text-sm transition`}
-                    >
-                      👍 {post.is_liked ? "Liked" : "Like"} ({post.likes_count})
-                    </button>
-                    <button
-                      onClick={() => toggleComments(post.post_id)}
-                      className="text-gray-400 hover:text-[#C5B239] text-sm transition"
-                    >
-                      💬 Comment ({post.comments_count})
-                    </button>
-                    <button
-                      className="text-gray-400 hover:text-[#C5B239] text-sm transition"
-                    >
-                      ✉️ Message
-                    </button>
-                  </div>
-
-                  {/* Comments Section */}
-                  {showComments[post.post_id] && (
-                    <div className="mt-4 border-t border-gray-700 pt-4">
-                      {/* Add Comment Input */}
-                      <div className="flex gap-2 mb-4">
-                        <input
-                          type="text"
-                          value={commentText[post.post_id] || ""}
-                          onChange={(e) =>
-                            setCommentText((prev) => ({
-                              ...prev,
-                              [post.post_id]: e.target.value,
-                            }))
-                          }
-                          onKeyPress={(e) => {
-                            if (e.key === "Enter") {
-                              handleAddComment(post.post_id);
-                            }
-                          }}
-                          placeholder="Write a comment..."
-                          className="flex-1 bg-[#212529] border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5B239]"
-                        />
-                        <button
-                          onClick={() => handleAddComment(post.post_id)}
-                          className="bg-[#C5B239] text-black px-4 py-2 rounded-lg hover:bg-[#d4c04a] transition"
-                        >
-                          Post
-                        </button>
-                      </div>
-
-                      {/* Display Comments */}
-                      <div className="space-y-3">
-                        {comments[post.post_id]?.length > 0 ? (
-                          comments[post.post_id].map((comment) => (
-                            <div
-                              key={comment.comment_id}
-                              className="bg-[#212529] p-3 rounded-lg"
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <div className="w-6 h-6 rounded-full bg-[#C5B239] flex items-center justify-center text-black text-xs font-bold">
-                                  {comment.user_role?.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="text-sm text-gray-400">
-                                  {comment.user_role}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {new Date(comment.created_at).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <p className="text-gray-300 text-sm">
-                                {comment.comment_text}
-                              </p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-gray-500 text-sm text-center py-2">
-                            No comments yet. Be the first to comment!
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                ))}
 
               {/* No posts message */}
               {!loadingPosts && posts.length === 0 && (
                 <div className="text-center py-8">
-                  <p className="text-gray-400">No posts yet. Be the first to share!</p>
+                  <p className="text-gray-400">
+                    No posts yet. Be the first to share!
+                  </p>
                 </div>
               )}
             </div>
           )}
 
-
-
           {/* Job Post */}
           {activeTab === "jobpost" && (
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-[#C5B239]">
-                  Job Openings
-                </h2>
+            <div className="space-y-6">
+              {/* Alumni: My Pending Job Requests */}
+              {user?.role === "alumni" && (
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold text-[#C5B239]">
+                    My Pending Job Requests
+                  </h2>
+                  <p className="text-gray-400 text-sm">
+                    Jobs you've requested that are awaiting admin approval
+                  </p>
 
-                {/* Add Job button for Alumni and Admin */}
-                {user && (user.role === "alumni" || user.role === "admin") && (
-                  <button
-                    onClick={() => setShowAddJobModal(true)}
-                    className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
-                  >
-                    {user.role === "admin" ? "Create Job" : "Request Job Posting"}
-                  </button>
-                )}
-              </div>
+                  {loadingRequests ? (
+                    <div className="text-center text-gray-400 py-8">
+                      Loading your requests...
+                    </div>
+                  ) : myJobRequests.filter(req => req.status === 'pending').length === 0 ? (
+                    <div className="text-center text-gray-400 py-6">
+                      No pending job requests. You can request a new job posting
+                      below.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {myJobRequests.filter(req => req.status === 'pending').map((request) => (
+                        <div
+                          key={request.request_id}
+                          className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg text-[#C5B239] flex items-center gap-2">
+                                <FaBriefcase className="text-sm" />
+                                {request.job_title}
+                              </h3>
+                              <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400 mt-2">
+                                <span className="flex items-center gap-1">
+                                  <FaBuilding />
+                                  {request.company}
+                                </span>
+                                {request.location && (
+                                  <span className="flex items-center gap-1">
+                                    <FaMapMarkerAlt />
+                                    {request.location}
+                                  </span>
+                                )}
+                                <span
+                                  className={`px-2 py-1 rounded text-xs ${
+                                    request.status === "pending"
+                                      ? "bg-yellow-500/20 text-yellow-500"
+                                      : request.status === "approved"
+                                      ? "bg-green-500/20 text-green-500"
+                                      : "bg-red-500/20 text-red-500"
+                                  }`}
+                                >
+                                  {request.status.toUpperCase()}
+                                </span>
+                              </div>
+                              <p className="text-gray-300 text-sm mb-2">
+                                {request.description}
+                              </p>
+                              {request.requirements && (
+                                <div className="text-gray-400 text-sm">
+                                  <span className="font-semibold">
+                                    Requirements:
+                                  </span>{" "}
+                                  {request.requirements}
+                                </div>
+                              )}
+                            </div>
 
-              {loadingJobs ? (
-                <div className="text-center text-gray-400 py-8">Loading jobs...</div>
-              ) : jobs.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">No jobs available at the moment.</div>
-              ) : (
-                jobs.map((job) => (
-                  <div
-                    key={job.job_id}
-                    className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg text-[#C5B239] mb-2 flex items-center gap-2">
-                          <FaBriefcase className="text-sm" />
-                          {job.title}
-                        </h3>
-                        <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <FaBuilding />
-                            {job.company}
-                          </span>
-                          {job.location && (
+                            {/* Delete button - only for pending requests */}
+                            {request.status === "pending" && (
+                              <button
+                                onClick={() =>
+                                  handleDeletePendingRequest(request.request_id)
+                                }
+                                className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all ml-4"
+                                title="Delete request"
+                              >
+                                <FaTrash className="text-sm" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Job Openings */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold text-[#C5B239]">
+                    Job Openings
+                  </h2>
+
+                  {/* Add Job button for Alumni and Admin */}
+                  {user && (user.role === "alumni" || user.role === "admin") && (
+                    <button
+                      onClick={() => setShowAddJobModal(true)}
+                      className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
+                    >
+                      {user.role === "admin"
+                        ? "Create Job"
+                        : "Request Job Posting"}
+                    </button>
+                  )}
+                </div>
+
+                {loadingJobs ? (
+                  <div className="text-center text-gray-400 py-8">
+                    Loading jobs...
+                  </div>
+                ) : jobs.length === 0 ? (
+                  <div className="text-center text-gray-400 py-8">
+                    No jobs available at the moment.
+                  </div>
+                ) : (
+                  jobs.map((job) => (
+                    <div
+                      key={job.job_id}
+                      className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg text-[#C5B239] mb-2 flex items-center gap-2">
+                            <FaBriefcase className="text-sm" />
+                            {job.title}
+                          </h3>
+                          <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400">
                             <span className="flex items-center gap-1">
-                              <FaMapMarkerAlt />
-                              {job.location}
+                              <FaBuilding />
+                              {job.company}
                             </span>
-                          )}
-                          <span className="flex items-center gap-1">
-                            <FaUserTie />
-                            Posted by: {job.posted_by_role === "admin" ? "Admin" : "Alumni"}
-                          </span>
-                          {job.application_count > 0 && (
-                            <span className="text-[#C5B239]">
-                              {job.application_count} {job.application_count === 1 ? 'application' : 'applications'}
+                            {job.location && (
+                              <span className="flex items-center gap-1">
+                                <FaMapMarkerAlt />
+                                {job.location}
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <FaUserTie />
+                              Posted by:{" "}
+                              {job.posted_by_role === "admin"
+                                ? "Admin"
+                                : "Alumni"}
                             </span>
+                            {job.application_count > 0 && (
+                              <span className="text-[#C5B239]">
+                                {job.application_count}{" "}
+                                {job.application_count === 1
+                                  ? "application"
+                                  : "applications"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-300 text-sm mb-2">
+                            {job.description}
+                          </p>
+                          {job.requirements && (
+                            <div className="text-gray-400 text-sm">
+                              <span className="font-semibold">
+                                Requirements:
+                              </span>{" "}
+                              {job.requirements}
+                            </div>
                           )}
                         </div>
-                        <p className="text-gray-300 text-sm mb-2">
-                          {job.description}
-                        </p>
-                        {job.requirements && (
-                          <div className="text-gray-400 text-sm">
-                            <span className="font-semibold">Requirements:</span> {job.requirements}
-                          </div>
-                        )}
-                      </div>
 
-                      {/* Apply button for students and alumni */}
-                      {user && (user.role === "student" || user.role === "alumni") && (
-                        <button
-                          onClick={() => setShowApplyModal(job.job_id)}
-                          className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition ml-4"
-                        >
-                          Apply
-                        </button>
-                      )}
+                        <div className="flex gap-2 ml-4">
+                          {/* Delete button - Admin can delete any job */}
+                          {user && user.role === "admin" && (
+                            <button
+                              onClick={() => handleDeleteJob(job.job_id)}
+                              className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
+                              title="Delete job"
+                            >
+                              <FaTrash className="text-sm" />
+                            </button>
+                          )}
+
+                          {/* Apply button */}
+                          {user &&
+                            (user.role === "student" ||
+                              user.role === "alumni") && (
+                              <button
+                                onClick={() => setShowApplyModal(job.job_id)}
+                                className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
+                              >
+                                Apply
+                              </button>
+                            )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))
+                )}
+              </div>
             </div>
           )}
-
         </div>
       </div>
 
@@ -1026,7 +1345,6 @@ const handleConnect = (mentor) => {
                   cover_letter: "",
                   additional_details: "",
                 });
-
               }}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
             >
@@ -1045,18 +1363,27 @@ const handleConnect = (mentor) => {
                   placeholder="https://..."
                   value={applicationData.resume_url}
                   onChange={(e) =>
-                    setApplicationData({ ...applicationData, resume_url: e.target.value })
+                    setApplicationData({
+                      ...applicationData,
+                      resume_url: e.target.value,
+                    })
                   }
                   className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
                 />
               </div>
+
               <div>
-                <label className="text-gray-400 text-sm mb-1 block">Full Name *</label>
+                <label className="text-gray-400 text-sm mb-1 block">
+                  Full Name *
+                </label>
                 <input
                   type="text"
                   value={applicationData.full_name}
                   onChange={(e) =>
-                    setApplicationData({ ...applicationData, full_name: e.target.value })
+                    setApplicationData({
+                      ...applicationData,
+                      full_name: e.target.value,
+                    })
                   }
                   className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
                   required
@@ -1064,7 +1391,9 @@ const handleConnect = (mentor) => {
               </div>
 
               <div>
-                <label className="text-gray-400 text-sm mb-1 block">Email *</label>
+                <label className="text-gray-400 text-sm mb-1 block">
+                  Email *
+                </label>
                 <input
                   type="email"
                   value={applicationData.email}
@@ -1077,12 +1406,17 @@ const handleConnect = (mentor) => {
               </div>
 
               <div>
-                <label className="text-gray-400 text-sm mb-1 block">Phone Number *</label>
+                <label className="text-gray-400 text-sm mb-1 block">
+                  Phone Number *
+                </label>
                 <input
                   type="tel"
                   value={applicationData.phone}
                   onChange={(e) =>
-                    setApplicationData({ ...applicationData, phone: e.target.value })
+                    setApplicationData({
+                      ...applicationData,
+                      phone: e.target.value,
+                    })
                   }
                   className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
                   required
@@ -1090,12 +1424,17 @@ const handleConnect = (mentor) => {
               </div>
 
               <div>
-                <label className="text-gray-400 text-sm mb-1 block">Current Location *</label>
+                <label className="text-gray-400 text-sm mb-1 block">
+                  Current Location *
+                </label>
                 <input
                   type="text"
                   value={applicationData.location}
                   onChange={(e) =>
-                    setApplicationData({ ...applicationData, location: e.target.value })
+                    setApplicationData({
+                      ...applicationData,
+                      location: e.target.value,
+                    })
                   }
                   className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
                   required
@@ -1171,7 +1510,10 @@ const handleConnect = (mentor) => {
                   placeholder="Paste your resume content here..."
                   value={applicationData.resume_text}
                   onChange={(e) =>
-                    setApplicationData({ ...applicationData, resume_text: e.target.value })
+                    setApplicationData({
+                      ...applicationData,
+                      resume_text: e.target.value,
+                    })
                   }
                   className="w-full bg-[#111] p-3 rounded-md text-white outline-none resize-none"
                   rows={4}
@@ -1186,7 +1528,10 @@ const handleConnect = (mentor) => {
                   placeholder="Write your cover letter..."
                   value={applicationData.cover_letter}
                   onChange={(e) =>
-                    setApplicationData({ ...applicationData, cover_letter: e.target.value })
+                    setApplicationData({
+                      ...applicationData,
+                      cover_letter: e.target.value,
+                    })
                   }
                   className="w-full bg-[#111] p-3 rounded-md text-white outline-none resize-none"
                   rows={4}
@@ -1202,7 +1547,10 @@ const handleConnect = (mentor) => {
                   placeholder="e.g., Portfolio link, LinkedIn, etc."
                   value={applicationData.additional_details}
                   onChange={(e) =>
-                    setApplicationData({ ...applicationData, additional_details: e.target.value })
+                    setApplicationData({
+                      ...applicationData,
+                      additional_details: e.target.value,
+                    })
                   }
                   className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
                 />
@@ -1275,7 +1623,10 @@ const handleConnect = (mentor) => {
                 placeholder="Job Description *"
                 value={jobFormData.description}
                 onChange={(e) =>
-                  setJobFormData({ ...jobFormData, description: e.target.value })
+                  setJobFormData({
+                    ...jobFormData,
+                    description: e.target.value,
+                  })
                 }
                 className="w-full bg-[#111] p-3 rounded-md text-white outline-none resize-none"
                 rows={4}
@@ -1285,7 +1636,10 @@ const handleConnect = (mentor) => {
                 placeholder="Requirements (Optional)"
                 value={jobFormData.requirements}
                 onChange={(e) =>
-                  setJobFormData({ ...jobFormData, requirements: e.target.value })
+                  setJobFormData({
+                    ...jobFormData,
+                    requirements: e.target.value,
+                  })
                 }
                 className="w-full bg-[#111] p-3 rounded-md text-white outline-none resize-none"
                 rows={3}
@@ -1312,13 +1666,25 @@ const handleConnect = (mentor) => {
           <div className="bg-[#1a1a1a] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-700">
-              <h3 className="text-xl font-semibold text-[#C5B239]">Preview & Adjust Image</h3>
+              <h3 className="text-xl font-semibold text-[#C5B239]">
+                Preview & Adjust Image
+              </h3>
               <button
                 onClick={handleCancelImage}
                 className="text-gray-400 hover:text-white transition"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
@@ -1332,10 +1698,10 @@ const handleConnect = (mentor) => {
                     alt="Preview"
                     style={{
                       transform: `scale(${imageZoom})`,
-                      transition: 'transform 0.2s ease',
-                      maxWidth: '100%',
-                      maxHeight: '70vh',
-                      objectFit: 'contain'
+                      transition: "transform 0.2s ease",
+                      maxWidth: "100%",
+                      maxHeight: "70vh",
+                      objectFit: "contain",
                     }}
                     className="rounded-lg"
                   />
@@ -1349,37 +1715,68 @@ const handleConnect = (mentor) => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm text-gray-400">Zoom</label>
-                  <span className="text-sm text-[#C5B239]">{Math.round(imageZoom * 100)}%</span>
+                  <span className="text-sm text-[#C5B239]">
+                    {Math.round(imageZoom * 100)}%
+                  </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setImageZoom(Math.max(0.5, imageZoom - 0.1))}
                     className="bg-[#2a2a2a] hover:bg-[#333] text-white p-2 rounded-lg transition"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 12H4"
+                      />
                     </svg>
                   </button>
+
                   <input
                     type="range"
                     min="0.5"
                     max="2"
                     step="0.1"
                     value={imageZoom}
-                    onChange={(e) => setImageZoom(parseFloat(e.target.value))}
+                    onChange={(e) =>
+                      setImageZoom(parseFloat(e.target.value))
+                    }
                     className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, #C5B239 0%, #C5B239 ${((imageZoom - 0.5) / 1.5) * 100}%, #374151 ${((imageZoom - 0.5) / 1.5) * 100}%, #374151 100%)`
+                      background: `linear-gradient(to right, #C5B239 0%, #C5B239 ${
+                        ((imageZoom - 0.5) / 1.5) * 100
+                      }%, #374151 ${
+                        ((imageZoom - 0.5) / 1.5) * 100
+                      }%, #374151 100%)`,
                     }}
                   />
+
                   <button
                     onClick={() => setImageZoom(Math.min(2, imageZoom + 0.1))}
                     className="bg-[#2a2a2a] hover:bg-[#333] text-white p-2 rounded-lg transition"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                   </button>
+
                   <button
                     onClick={() => setImageZoom(1)}
                     className="bg-[#2a2a2a] hover:bg-[#333] text-white px-3 py-2 rounded-lg transition text-sm"
@@ -1406,7 +1803,8 @@ const handleConnect = (mentor) => {
               </div>
 
               <p className="text-xs text-gray-500 text-center">
-                Tip: Adjust the zoom to fit your image perfectly. The image will be optimized for posting.
+                Tip: Adjust the zoom to fit your image perfectly. The image will
+                be optimized for posting.
               </p>
             </div>
           </div>

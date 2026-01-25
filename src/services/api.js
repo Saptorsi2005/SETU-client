@@ -206,7 +206,17 @@ export const jobsAPI = {
     });
     return response.data;
   },
+  // Delete job (admin can delete any, alumni cannot delete approved jobs)
+  deleteJob: async (jobId) => {
+    const response = await api.delete(`/jobs/${jobId}`);
+    return response.data;
+  },
 
+  // Delete pending job request (alumni - own pending requests)
+  deletePendingRequest: async (requestId) => {
+    const response = await api.delete(`/jobs/pending/request/${requestId}`);
+    return response.data;
+  },
   // Get my applications (students and alumni)
   getMyApplications: async () => {
     const response = await api.get('/jobs/my/applications');
@@ -286,6 +296,33 @@ export const postsAPI = {
     const response = await api.post(`/posts/${postId}/comments`, {
       comment_text: commentText,
     });
+    return response.data;
+  },
+};
+
+// Connection API calls
+export const connectionsAPI = {
+  // Create new connection
+  create: async (connectionData) => {
+    const response = await api.post('/connections', connectionData);
+    return response.data;
+  },
+
+  // Get all connections for current user
+  getAll: async () => {
+    const response = await api.get('/connections');
+    return response.data;
+  },
+
+  // Check if connected with specific mentor
+  check: async (mentorName) => {
+    const response = await api.get(`/connections/check/${encodeURIComponent(mentorName)}`);
+    return response.data;
+  },
+
+  // Delete connection
+  delete: async (connectionId) => {
+    const response = await api.delete(`/connections/${connectionId}`);
     return response.data;
   },
 };
