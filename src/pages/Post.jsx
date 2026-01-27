@@ -106,13 +106,13 @@ const Post = () => {
   }, [user]);
 
   // Fetch mentors from AI model
-  useEffect(() => {
+ useEffect(() => {
   const fetchMentors = async () => {
     try {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        console.log("❌ No token found");
+        console.log("❌ No token in localStorage");
         return;
       }
 
@@ -128,7 +128,7 @@ const Post = () => {
       console.log("✅ Mentor API raw data:", res.data);
 
       const formatted = res.data.map((m, index) => ({
-        id: m.id || index + 1,
+        id: m.id || index,
         name: m.name,
         skill: m.skills.join(", "),
         match: Math.round((m.score || 0.5) * 100),
@@ -146,6 +146,7 @@ const Post = () => {
 
   fetchMentors();
 }, []);
+
 
 
 
