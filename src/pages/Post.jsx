@@ -14,8 +14,6 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 
-
-
 const Post = () => {
   const [activeTab, setActiveTab] = useState("recommendations");
   const navigate = useNavigate();
@@ -62,6 +60,14 @@ const Post = () => {
 
   const [connections, setConnections] = useState([]);
 
+  // Student connection requests (for alumni)
+  const [studentRequests, setStudentRequests] = useState([]);
+  const [loadingStudentRequests, setLoadingStudentRequests] = useState(false);
+
+  // Jobs applied by user (student/alumni)
+  const [myApplications, setMyApplications] = useState([]);
+  const [loadingApplications, setLoadingApplications] = useState(false);
+
   // Fetch existing connections on mount
   useEffect(() => {
     const fetchConnections = async () => {
@@ -83,7 +89,7 @@ const Post = () => {
 
           // Track connected mentor names
           const connectedNames = new Set(
-            response.connections.map((c) => c.mentor_name)
+            response.connections.map((c) => c.mentor_name),
           );
           setConnectedMentorNames(connectedNames);
         }
@@ -95,50 +101,89 @@ const Post = () => {
     fetchConnections();
   }, [user]);
 
-  // Fetch mentors from AI model
- useEffect(() => {
-  const fetchMentors = async () => {
-    try {
-      const token = localStorage.getItem("token");
+  useEffect(() => {
+    const fetchMyApplications = async () => {
+      if (!user) return;
 
-      if (!token) {
-        console.log("❌ No token in localStorage");
-        return;
-      }
-
-      const res = await axios.get(
-        "http://localhost:5001/api/mentor-recommend",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      try {
+        setLoadingApplications(true);
+        const res = await jobsAPI.getMyApplications(); // ⚠️ backend required
+        if (res.success) {
+          setMyApplications(res.data || res.applications || []);
         }
-      );
+      } catch (err) {
+        console.error("Failed to fetch applications:", err);
+      } finally {
+        setLoadingApplications(false);
+      }
+    };
 
-      console.log("✅ Mentor API raw data:", res.data);
-
-      const formatted = res.data.map((m, index) => ({
-        id: m.id || index,
-        name: m.name,
-        skill: m.skills.join(", "),
-        match: Math.round((m.score ?? 0) * 100),
-        avatar: m.profile_image || assets.person1, // ✅ REAL PHOTO
-      }));
-
-      setRecommendedMentors(formatted);
-    } catch (err) {
-      console.error(
-        "❌ Mentor fetch error:",
-        err.response?.data || err.message
-      );
+    if (activeTab === "jobpost") {
+      fetchMyApplications();
     }
-  };
+  }, [user, activeTab]);
 
-  fetchMentors();
-}, []);
+  useEffect(() => {
+    const fetchStudentRequests = async () => {
+      if (!user || user.role !== "alumni") return;
 
+      try {
+        setLoadingStudentRequests(true);
+        const res = await connectionsAPI.getStudentRequests();
+        if (res.success) {
+          setStudentRequests(res.requests);
+        }
+      } catch (err) {
+        console.error("Failed to fetch student requests:", err);
+      } finally {
+        setLoadingStudentRequests(false);
+      }
+    };
 
+    fetchStudentRequests();
+  }, [user]);
 
+  // Fetch mentors from AI model
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.log("❌ No token in localStorage");
+          return;
+        }
+
+        const res = await axios.get(
+          "http://localhost:5001/api/mentor-recommend",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        console.log("✅ Mentor API raw data:", res.data);
+
+        const formatted = res.data.map((m, index) => ({
+          id: m.id || index,
+          name: m.name,
+          skill: m.skills.join(", "),
+          match: Math.round((m.score ?? 0) * 100),
+          avatar: m.profile_image || assets.person1, // ✅ REAL PHOTO
+        }));
+
+        setRecommendedMentors(formatted);
+      } catch (err) {
+        console.error(
+          "❌ Mentor fetch error:",
+          err.response?.data || err.message,
+        );
+      }
+    };
+
+    fetchMentors();
+  }, []);
 
   const handleConnect = async (mentor) => {
     try {
@@ -190,6 +235,37 @@ const Post = () => {
       } else {
         alert("Failed to connect with mentor. Please try again.");
       }
+    }
+  };
+
+  const handleAcceptRequest = async (requestId) => {
+    try {
+      const res = await connectionsAPI.acceptRequest(requestId);
+      if (res.success) {
+        setStudentRequests((prev) =>
+          prev.filter((r) => r.request_id !== requestId),
+        );
+        fetchConnections(); // refresh mentor list
+        alert("Connection accepted!");
+      }
+    } catch (err) {
+      console.error("Accept failed:", err);
+      alert("Failed to accept request");
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    try {
+      const res = await connectionsAPI.rejectRequest(requestId);
+      if (res.success) {
+        setStudentRequests((prev) =>
+          prev.filter((r) => r.request_id !== requestId),
+        );
+        alert("Request rejected");
+      }
+    } catch (err) {
+      console.error("Reject failed:", err);
+      alert("Failed to reject request");
     }
   };
 
@@ -331,7 +407,7 @@ const Post = () => {
           setTempImageFile(null);
         },
         tempImageFile.type,
-        0.9
+        0.9,
       );
     };
   };
@@ -394,8 +470,8 @@ const Post = () => {
                   ? post.likes_count - 1
                   : post.likes_count + 1,
               }
-            : post
-        )
+            : post,
+        ),
       );
     } catch (error) {
       console.error("Failed to like/unlike post:", error);
@@ -423,8 +499,8 @@ const Post = () => {
           prev.map((post) =>
             post.post_id === postId
               ? { ...post, comments_count: post.comments_count + 1 }
-              : post
-          )
+              : post,
+          ),
         );
 
         setCommentText((prev) => ({ ...prev, [postId]: "" }));
@@ -538,7 +614,9 @@ const Post = () => {
     } catch (error) {
       console.error("Failed to delete job:", error);
       const errorMsg =
-        error.response?.data?.message || error.message || "Failed to delete job";
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to delete job";
       alert(errorMsg);
     }
   };
@@ -554,7 +632,7 @@ const Post = () => {
 
       if (response.success) {
         setMyJobRequests((prev) =>
-          prev.filter((req) => req.request_id !== requestId)
+          prev.filter((req) => req.request_id !== requestId),
         );
         alert("Job request deleted successfully!");
       }
@@ -609,7 +687,7 @@ const Post = () => {
       console.error("Application error:", err);
       alert(
         err.response?.data?.message ||
-          "Failed to submit application. Please try again."
+          "Failed to submit application. Please try again.",
       );
     }
   };
@@ -622,7 +700,11 @@ const Post = () => {
     console.log("User role:", user?.role);
     console.log("Token in localStorage:", localStorage.getItem("token"));
 
-    if (!jobFormData.title || !jobFormData.company || !jobFormData.description) {
+    if (
+      !jobFormData.title ||
+      !jobFormData.company ||
+      !jobFormData.description
+    ) {
       alert("Please fill in title, company, and description.");
       return;
     }
@@ -646,7 +728,7 @@ const Post = () => {
       } else {
         alert(
           "You don't have permission to create jobs. Your role: " +
-            (user?.role || "not logged in")
+            (user?.role || "not logged in"),
         );
         return;
       }
@@ -791,61 +873,119 @@ const Post = () => {
 
           {/* Connections */}
           {activeTab === "connections" && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-[#C5B239]">
-                Your Connections
-              </h2>
-              <input
-                type="text"
-                placeholder="Search connections by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#111] text-white p-3 rounded-lg outline-none border border-gray-700 focus:border-[#C5B239]"
-              />
+            <div className="flex gap-6">
+              {/* LEFT: Connections List */}
+              <div className="flex-1 space-y-4">
+                <h2 className="text-xl font-semibold text-[#C5B239]">
+                  Your Connections
+                </h2>
 
-              {connections.length === 0 ? (
-                <p className="text-gray-400 text-center py-10">
-                  You have no connections yet. Start connecting with mentors.
-                </p>
-              ) : (
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {connections
-                    .filter((conn) =>
-                      conn.name.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map((conn) => (
-                      <div
-                        key={conn.id}
-                        onClick={() =>
-                          navigate(`/connectionProfile/${conn.id}`)
-                        }
-                        className="bg-[#1a1a1a] p-4 rounded-xl shadow-md flex justify-between items-center hover:bg-[#222] cursor-pointer transition-all"
-                      >
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={conn.avatar}
-                            alt={conn.name}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
-                          <div>
-                            <h3 className="font-semibold text-[#C5B239]">
-                              {conn.name}
-                            </h3>
-                            <p className="text-gray-400 text-sm">{conn.skill}</p>
+                <input
+                  type="text"
+                  placeholder="Search connections by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#111] text-white p-3 rounded-lg outline-none border border-gray-700 focus:border-[#C5B239]"
+                />
+
+                {connections.length === 0 ? (
+                  <p className="text-gray-400 text-center py-10">
+                    You have no connections yet. Start connecting with mentors.
+                  </p>
+                ) : (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {connections
+                      .filter((conn) =>
+                        conn.name
+                          .toLowerCase()
+                          .includes(searchQuery.toLowerCase()),
+                      )
+                      .map((conn) => (
+                        <div
+                          key={conn.id}
+                          onClick={() =>
+                            navigate(`/connectionProfile/${conn.id}`)
+                          }
+                          className="bg-[#1a1a1a] p-4 rounded-xl shadow-md flex justify-between items-center hover:bg-[#222] cursor-pointer transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={conn.avatar}
+                              alt={conn.name}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                            <div>
+                              <h3 className="font-semibold text-[#C5B239]">
+                                {conn.name}
+                              </h3>
+                              <p className="text-gray-400 text-sm">
+                                {conn.skill}
+                              </p>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate("/messages");
+                            }}
+                            className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-3 py-1 rounded-md text-sm transition"
+                          >
+                            Message
+                          </button>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              {/* RIGHT SIDEBAR: Student Requests */}
+              {user?.role === "alumni" && (
+                <div className="w-80 bg-[#1a1a1a] p-4 rounded-xl border border-gray-700 h-fit sticky top-24">
+                  <h3 className="text-lg font-semibold text-[#C5B239] mb-3">
+                    Student Connection Requests
+                  </h3>
+
+                  {loadingStudentRequests ? (
+                    <p className="text-gray-400 text-sm">Loading...</p>
+                  ) : studentRequests.length === 0 ? (
+                    <p className="text-gray-500 text-sm">No pending requests</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {studentRequests.map((req) => (
+                        <div
+                          key={req.request_id}
+                          className="bg-[#111] p-3 rounded-lg border border-gray-700"
+                        >
+                          <p className="text-sm font-semibold text-white">
+                            {req.student_name}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {req.student_skill || "Student"}
+                          </p>
+
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={() =>
+                                handleAcceptRequest(req.request_id)
+                              }
+                              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-1 rounded"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() =>
+                                handleRejectRequest(req.request_id)
+                              }
+                              className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs py-1 rounded"
+                            >
+                              Reject
+                            </button>
                           </div>
                         </div>
-
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate("/messages");
-                          }}
-                          className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-3 py-1 rounded-md text-sm transition"
-                        >
-                          Message
-                        </button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -854,7 +994,9 @@ const Post = () => {
           {/* Feed */}
           {activeTab === "feed" && (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-2 text-[#C5B239]">Feed</h2>
+              <h2 className="text-xl font-semibold mb-2 text-[#C5B239]">
+                Feed
+              </h2>
 
               {/* 🔹 Create Post */}
               <div className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3">
@@ -1035,7 +1177,8 @@ const Post = () => {
                           post.is_liked ? "text-[#C5B239]" : "text-gray-400"
                         } hover:text-[#C5B239] text-sm transition`}
                       >
-                        👍 {post.is_liked ? "Liked" : "Like"} ({post.likes_count})
+                        👍 {post.is_liked ? "Liked" : "Like"} (
+                        {post.likes_count})
                       </button>
 
                       <button
@@ -1097,7 +1240,7 @@ const Post = () => {
                                   </span>
                                   <span className="text-xs text-gray-500">
                                     {new Date(
-                                      comment.created_at
+                                      comment.created_at,
                                     ).toLocaleDateString()}
                                   </span>
                                 </div>
@@ -1130,204 +1273,254 @@ const Post = () => {
 
           {/* Job Post */}
           {activeTab === "jobpost" && (
-            <div className="space-y-6">
-              {/* Alumni: My Pending Job Requests */}
-              {user?.role === "alumni" && (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-[#C5B239]">
-                    My Pending Job Requests
-                  </h2>
-                  <p className="text-gray-400 text-sm">
-                    Jobs you've requested that are awaiting admin approval
-                  </p>
+            <div className="flex gap-6">
+              {/* LEFT: Existing Job Content */}
+              <div className="flex-1 space-y-6">
+                {/* Alumni: My Pending Job Requests */}
+                {user?.role === "alumni" && (
+                  <div className="space-y-4">
+                    <h2 className="text-xl font-semibold text-[#C5B239]">
+                      My Pending Job Requests
+                    </h2>
+                    <p className="text-gray-400 text-sm">
+                      Jobs you've requested that are awaiting admin approval
+                    </p>
 
-                  {loadingRequests ? (
+                    {loadingRequests ? (
+                      <div className="text-center text-gray-400 py-8">
+                        Loading your requests...
+                      </div>
+                    ) : myJobRequests.filter((req) => req.status === "pending")
+                        .length === 0 ? (
+                      <div className="text-center text-gray-400 py-6">
+                        No pending job requests. You can request a new job
+                        posting below.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {myJobRequests
+                          .filter((req) => req.status === "pending")
+                          .map((request) => (
+                            <div
+                              key={request.request_id}
+                              className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
+                            >
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <h3 className="font-semibold text-lg text-[#C5B239] flex items-center gap-2">
+                                    <FaBriefcase className="text-sm" />
+                                    {request.job_title}
+                                  </h3>
+                                  <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400 mt-2">
+                                    <span className="flex items-center gap-1">
+                                      <FaBuilding />
+                                      {request.company}
+                                    </span>
+                                    {request.location && (
+                                      <span className="flex items-center gap-1">
+                                        <FaMapMarkerAlt />
+                                        {request.location}
+                                      </span>
+                                    )}
+                                    <span
+                                      className={`px-2 py-1 rounded text-xs ${
+                                        request.status === "pending"
+                                          ? "bg-yellow-500/20 text-yellow-500"
+                                          : request.status === "approved"
+                                            ? "bg-green-500/20 text-green-500"
+                                            : "bg-red-500/20 text-red-500"
+                                      }`}
+                                    >
+                                      {request.status.toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <p className="text-gray-300 text-sm mb-2">
+                                    {request.description}
+                                  </p>
+                                  {request.requirements && (
+                                    <div className="text-gray-400 text-sm">
+                                      <span className="font-semibold">
+                                        Requirements:
+                                      </span>{" "}
+                                      {request.requirements}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Delete button - only for pending requests */}
+                                {request.status === "pending" && (
+                                  <button
+                                    onClick={() =>
+                                      handleDeletePendingRequest(
+                                        request.request_id,
+                                      )
+                                    }
+                                    className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all ml-4"
+                                    title="Delete request"
+                                  >
+                                    <FaTrash className="text-sm" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Job Openings */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold text-[#C5B239]">
+                      Job Openings
+                    </h2>
+
+                    {/* Add Job button for Alumni and Admin */}
+                    {user &&
+                      (user.role === "alumni" || user.role === "admin") && (
+                        <button
+                          onClick={() => setShowAddJobModal(true)}
+                          className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
+                        >
+                          {user.role === "admin"
+                            ? "Create Job"
+                            : "Request Job Posting"}
+                        </button>
+                      )}
+                  </div>
+
+                  {loadingJobs ? (
                     <div className="text-center text-gray-400 py-8">
-                      Loading your requests...
+                      Loading jobs...
                     </div>
-                  ) : myJobRequests.filter(req => req.status === 'pending').length === 0 ? (
-                    <div className="text-center text-gray-400 py-6">
-                      No pending job requests. You can request a new job posting
-                      below.
+                  ) : jobs.length === 0 ? (
+                    <div className="text-center text-gray-400 py-8">
+                      No jobs available at the moment.
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {myJobRequests.filter(req => req.status === 'pending').map((request) => (
-                        <div
-                          key={request.request_id}
-                          className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg text-[#C5B239] flex items-center gap-2">
-                                <FaBriefcase className="text-sm" />
-                                {request.job_title}
-                              </h3>
-                              <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400 mt-2">
+                    jobs.map((job) => (
+                      <div
+                        key={job.job_id}
+                        className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-lg text-[#C5B239] mb-2 flex items-center gap-2">
+                              <FaBriefcase className="text-sm" />
+                              {job.title}
+                            </h3>
+                            <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400">
+                              <span className="flex items-center gap-1">
+                                <FaBuilding />
+                                {job.company}
+                              </span>
+                              {job.location && (
                                 <span className="flex items-center gap-1">
-                                  <FaBuilding />
-                                  {request.company}
+                                  <FaMapMarkerAlt />
+                                  {job.location}
                                 </span>
-                                {request.location && (
-                                  <span className="flex items-center gap-1">
-                                    <FaMapMarkerAlt />
-                                    {request.location}
-                                  </span>
-                                )}
-                                <span
-                                  className={`px-2 py-1 rounded text-xs ${
-                                    request.status === "pending"
-                                      ? "bg-yellow-500/20 text-yellow-500"
-                                      : request.status === "approved"
-                                      ? "bg-green-500/20 text-green-500"
-                                      : "bg-red-500/20 text-red-500"
-                                  }`}
-                                >
-                                  {request.status.toUpperCase()}
+                              )}
+                              <span className="flex items-center gap-1">
+                                <FaUserTie />
+                                Posted by:{" "}
+                                {job.posted_by_role === "admin"
+                                  ? "Admin"
+                                  : "Alumni"}
+                              </span>
+                              {job.application_count > 0 && (
+                                <span className="text-[#C5B239]">
+                                  {job.application_count}{" "}
+                                  {job.application_count === 1
+                                    ? "application"
+                                    : "applications"}
                                 </span>
-                              </div>
-                              <p className="text-gray-300 text-sm mb-2">
-                                {request.description}
-                              </p>
-                              {request.requirements && (
-                                <div className="text-gray-400 text-sm">
-                                  <span className="font-semibold">
-                                    Requirements:
-                                  </span>{" "}
-                                  {request.requirements}
-                                </div>
                               )}
                             </div>
+                            <p className="text-gray-300 text-sm mb-2">
+                              {job.description}
+                            </p>
+                            {job.requirements && (
+                              <div className="text-gray-400 text-sm">
+                                <span className="font-semibold">
+                                  Requirements:
+                                </span>{" "}
+                                {job.requirements}
+                              </div>
+                            )}
+                          </div>
 
-                            {/* Delete button - only for pending requests */}
-                            {request.status === "pending" && (
+                          <div className="flex gap-2 ml-4">
+                            {/* Delete button - Admin can delete any job */}
+                            {user && user.role === "admin" && (
                               <button
-                                onClick={() =>
-                                  handleDeletePendingRequest(request.request_id)
-                                }
-                                className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all ml-4"
-                                title="Delete request"
+                                onClick={() => handleDeleteJob(job.job_id)}
+                                className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
+                                title="Delete job"
                               >
                                 <FaTrash className="text-sm" />
                               </button>
                             )}
+
+                            {/* Apply button */}
+                            {user &&
+                              (user.role === "student" ||
+                                user.role === "alumni") && (
+                                <button
+                                  onClick={() => setShowApplyModal(job.job_id)}
+                                  className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
+                                >
+                                  Apply
+                                </button>
+                              )}
                           </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>{" "}
+              {/* END LEFT COLUMN */}
+              {/* RIGHT SIDEBAR: My Applications */}
+              {user && (user.role === "student" || user.role === "alumni") && (
+                <div className="w-80 bg-[#1a1a1a] p-4 rounded-xl border border-gray-700 h-fit sticky top-24">
+                  <h3 className="text-lg font-semibold text-[#C5B239] mb-3">
+                    My Job Applications
+                  </h3>
+
+                  {loadingApplications ? (
+                    <p className="text-gray-400 text-sm">Loading...</p>
+                  ) : myApplications.length === 0 ? (
+                    <p className="text-gray-500 text-sm">No applications yet</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {myApplications.map((app) => (
+                        <div
+                          key={app.application_id}
+                          className="bg-[#111] p-3 rounded-lg border border-gray-700"
+                        >
+                          <p className="text-sm font-semibold text-white">
+                            {app.job_title}
+                          </p>
+                          <p className="text-xs text-gray-400">{app.company}</p>
+
+                          <span
+                            className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${
+                              app.status === "pending"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : app.status === "accepted"
+                                  ? "bg-green-500/20 text-green-400"
+                                  : "bg-red-500/20 text-red-400"
+                            }`}
+                          >
+                            {app.status?.toUpperCase()}
+                          </span>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
               )}
-
-              {/* Job Openings */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-[#C5B239]">
-                    Job Openings
-                  </h2>
-
-                  {/* Add Job button for Alumni and Admin */}
-                  {user && (user.role === "alumni" || user.role === "admin") && (
-                    <button
-                      onClick={() => setShowAddJobModal(true)}
-                      className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
-                    >
-                      {user.role === "admin"
-                        ? "Create Job"
-                        : "Request Job Posting"}
-                    </button>
-                  )}
-                </div>
-
-                {loadingJobs ? (
-                  <div className="text-center text-gray-400 py-8">
-                    Loading jobs...
-                  </div>
-                ) : jobs.length === 0 ? (
-                  <div className="text-center text-gray-400 py-8">
-                    No jobs available at the moment.
-                  </div>
-                ) : (
-                  jobs.map((job) => (
-                    <div
-                      key={job.job_id}
-                      className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-lg text-[#C5B239] mb-2 flex items-center gap-2">
-                            <FaBriefcase className="text-sm" />
-                            {job.title}
-                          </h3>
-                          <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400">
-                            <span className="flex items-center gap-1">
-                              <FaBuilding />
-                              {job.company}
-                            </span>
-                            {job.location && (
-                              <span className="flex items-center gap-1">
-                                <FaMapMarkerAlt />
-                                {job.location}
-                              </span>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <FaUserTie />
-                              Posted by:{" "}
-                              {job.posted_by_role === "admin"
-                                ? "Admin"
-                                : "Alumni"}
-                            </span>
-                            {job.application_count > 0 && (
-                              <span className="text-[#C5B239]">
-                                {job.application_count}{" "}
-                                {job.application_count === 1
-                                  ? "application"
-                                  : "applications"}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-gray-300 text-sm mb-2">
-                            {job.description}
-                          </p>
-                          {job.requirements && (
-                            <div className="text-gray-400 text-sm">
-                              <span className="font-semibold">
-                                Requirements:
-                              </span>{" "}
-                              {job.requirements}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2 ml-4">
-                          {/* Delete button - Admin can delete any job */}
-                          {user && user.role === "admin" && (
-                            <button
-                              onClick={() => handleDeleteJob(job.job_id)}
-                              className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
-                              title="Delete job"
-                            >
-                              <FaTrash className="text-sm" />
-                            </button>
-                          )}
-
-                          {/* Apply button */}
-                          {user &&
-                            (user.role === "student" ||
-                              user.role === "alumni") && (
-                              <button
-                                onClick={() => setShowApplyModal(job.job_id)}
-                                className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
-                              >
-                                Apply
-                              </button>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
             </div>
           )}
         </div>
@@ -1406,7 +1599,10 @@ const Post = () => {
                   type="email"
                   value={applicationData.email}
                   onChange={(e) =>
-                    setApplicationData({ ...applicationData, email: e.target.value })
+                    setApplicationData({
+                      ...applicationData,
+                      email: e.target.value,
+                    })
                   }
                   className="w-full bg-[#111] p-3 rounded-md text-white outline-none"
                   required
@@ -1753,9 +1949,7 @@ const Post = () => {
                     max="2"
                     step="0.1"
                     value={imageZoom}
-                    onChange={(e) =>
-                      setImageZoom(parseFloat(e.target.value))
-                    }
+                    onChange={(e) => setImageZoom(parseFloat(e.target.value))}
                     className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
                     style={{
                       background: `linear-gradient(to right, #C5B239 0%, #C5B239 ${
