@@ -69,14 +69,6 @@ const Post = () => {
 
   const [connections, setConnections] = useState([]);
 
-  // Student connection requests (for alumni)
-  const [studentRequests, setStudentRequests] = useState([]);
-  const [loadingStudentRequests, setLoadingStudentRequests] = useState(false);
-
-  // Jobs applied by user (student/alumni)
-  const [myApplications, setMyApplications] = useState([]);
-  const [loadingApplications, setLoadingApplications] = useState(false);
-
   // Fetch existing connections on mount
   useEffect(() => {
     const fetchConnections = async () => {
@@ -111,13 +103,12 @@ const Post = () => {
   }, [user]);
 
   useEffect(() => {
-<<<<<<< HEAD
     const fetchMyApplications = async () => {
       if (!user) return;
 
       try {
         setLoadingApplications(true);
-        const res = await jobsAPI.getMyApplications(); // ⚠️ backend required
+        const res = await jobsAPI.getMyApplications();
         if (res.success) {
           setMyApplications(res.data || res.applications || []);
         }
@@ -134,9 +125,6 @@ const Post = () => {
   }, [user, activeTab]);
 
   useEffect(() => {
-    const fetchStudentRequests = async () => {
-      if (!user || user.role !== "alumni") return;
-=======
     const fetchStudentRequests = async () => {
       if (!user || user.role !== "alumni") return;
 
@@ -205,7 +193,10 @@ const Post = () => {
 
     fetchMentors();
   }, []);
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
+
+  useEffect(() => {
+    const fetchStudentRequests = async () => {
+      if (!user || user.role !== "alumni") return;
 
       try {
         setLoadingStudentRequests(true);
@@ -322,36 +313,6 @@ const Post = () => {
       const res = await connectionsAPI.acceptRequest(requestId);
       if (res.success) {
         setStudentRequests(prev => prev.filter(r => r.request_id !== requestId));
-        fetchConnections(); // refresh mentor list
-        alert("Connection accepted!");
-      }
-    } catch (err) {
-      console.error("Accept failed:", err);
-      alert("Failed to accept request");
-    }
-  };
-
-  const handleRejectRequest = async (requestId) => {
-    try {
-      const res = await connectionsAPI.rejectRequest(requestId);
-      if (res.success) {
-        setStudentRequests(prev => prev.filter(r => r.request_id !== requestId));
-        alert("Request rejected");
-      }
-    } catch (err) {
-      console.error("Reject failed:", err);
-      alert("Failed to reject request");
-    }
-  };
-
-
-  const handleAcceptRequest = async (requestId) => {
-    try {
-      const res = await connectionsAPI.acceptRequest(requestId);
-      if (res.success) {
-        setStudentRequests((prev) =>
-          prev.filter((r) => r.request_id !== requestId),
-        );
         fetchConnections(); // refresh mentor list
         alert("Connection accepted!");
       }
@@ -571,16 +532,6 @@ const Post = () => {
         prev.map((post) =>
           post.post_id === postId
             ? {
-<<<<<<< HEAD
-                ...post,
-                is_liked: !isLiked,
-                likes_count: isLiked
-                  ? post.likes_count - 1
-                  : post.likes_count + 1,
-              }
-            : post,
-        ),
-=======
               ...post,
               is_liked: !isLiked,
               likes_count: isLiked
@@ -589,7 +540,6 @@ const Post = () => {
             }
             : post
         )
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
       );
     } catch (error) {
       console.error("Failed to like/unlike post:", error);
@@ -828,11 +778,7 @@ const Post = () => {
       console.error("Application error:", err);
       alert(
         err.response?.data?.message ||
-<<<<<<< HEAD
-          "Failed to submit application. Please try again.",
-=======
         "Failed to submit application. Please try again."
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
       );
     }
   };
@@ -873,11 +819,7 @@ const Post = () => {
       } else {
         alert(
           "You don't have permission to create jobs. Your role: " +
-<<<<<<< HEAD
-            (user?.role || "not logged in"),
-=======
           (user?.role || "not logged in")
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
         );
         return;
       }
@@ -1022,22 +964,12 @@ const Post = () => {
           {/* Connections */}
           {activeTab === "connections" && (
             <div className="flex gap-6">
-<<<<<<< HEAD
-              {/* LEFT: Connections List */}
+              {/* LEFT: Main Connections List */}
               <div className="flex-1 space-y-4">
                 <h2 className="text-xl font-semibold text-[#C5B239]">
                   Your Connections
                 </h2>
 
-=======
-
-              {/* LEFT: Main Connections List (UNCHANGED CODE MOVED HERE) */}
-              <div className="flex-1 space-y-4">
-                <h2 className="text-xl font-semibold text-[#C5B239]">
-                  Your Connections
-                </h2>
-
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
                 <input
                   type="text"
                   placeholder="Search connections by name..."
@@ -1054,24 +986,12 @@ const Post = () => {
                   <div className="grid sm:grid-cols-2 gap-4">
                     {connections
                       .filter((conn) =>
-<<<<<<< HEAD
-                        conn.name
-                          .toLowerCase()
-                          .includes(searchQuery.toLowerCase()),
-=======
                         conn.name.toLowerCase().includes(searchQuery.toLowerCase())
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
                       )
                       .map((conn) => (
                         <div
                           key={conn.id}
-<<<<<<< HEAD
-                          onClick={() =>
-                            navigate(`/connectionProfile/${conn.id}`)
-                          }
-=======
                           onClick={() => navigate(`/connectionProfile/${conn.id}`)}
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
                           className="bg-[#1a1a1a] p-4 rounded-xl shadow-md flex justify-between items-center hover:bg-[#222] cursor-pointer transition-all"
                         >
                           <div className="flex items-center gap-3">
@@ -1084,13 +1004,7 @@ const Post = () => {
                               <h3 className="font-semibold text-[#C5B239]">
                                 {conn.name}
                               </h3>
-<<<<<<< HEAD
-                              <p className="text-gray-400 text-sm">
-                                {conn.skill}
-                              </p>
-=======
                               <p className="text-gray-400 text-sm">{conn.skill}</p>
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
                             </div>
                           </div>
 
@@ -1109,11 +1023,7 @@ const Post = () => {
                 )}
               </div>
 
-<<<<<<< HEAD
-              {/* RIGHT SIDEBAR: Student Requests */}
-=======
               {/* RIGHT: Student Requests Sidebar (ALUMNI ONLY) */}
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
               {user?.role === "alumni" && (
                 <div className="w-80 bg-[#1a1a1a] p-4 rounded-xl border border-gray-700 h-fit sticky top-24">
                   <h3 className="text-lg font-semibold text-[#C5B239] mb-3">
@@ -1140,25 +1050,13 @@ const Post = () => {
 
                           <div className="flex gap-2 mt-2">
                             <button
-<<<<<<< HEAD
-                              onClick={() =>
-                                handleAcceptRequest(req.request_id)
-                              }
-=======
                               onClick={() => handleAcceptRequest(req.request_id)}
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
                               className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-1 rounded"
                             >
                               Accept
                             </button>
                             <button
-<<<<<<< HEAD
-                              onClick={() =>
-                                handleRejectRequest(req.request_id)
-                              }
-=======
                               onClick={() => handleRejectRequest(req.request_id)}
->>>>>>> 7e89e9197993f81f6ae92d77311337223ee44505
                               className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs py-1 rounded"
                             >
                               Reject
