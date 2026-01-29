@@ -14,17 +14,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 
-const mentorAvatars = [
-  assets.person1,
-  assets.person2,
-  assets.person3,
-  assets.person4,
-  assets.person5,
-  assets.person6,
-];
 
-const getRandomAvatar = () =>
-  mentorAvatars[Math.floor(Math.random() * mentorAvatars.length)];
 
 const Post = () => {
   const [activeTab, setActiveTab] = useState("recommendations");
@@ -134,6 +124,13 @@ const Post = () => {
     fetchStudentRequests();
   }, [user]);
 
+      const formatted = res.data.map((m, index) => ({
+        id: m.id || index,
+        name: m.name,
+        skill: m.skills.join(", "),
+        match: Math.round((m.score ?? 0) * 100),
+        avatar: m.profile_image || assets.person1, // ✅ REAL PHOTO
+      }));
 
   // Fetch mentors from AI model
   useEffect(() => {
