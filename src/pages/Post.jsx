@@ -90,15 +90,31 @@ const Post = () => {
     try {
       const response = await connectionsAPI.getAll();
       if (response.success) {
-        // Format connections for display
-        const formattedConnections = response.connections.map((conn) => ({
-          id: conn.connection_id,
-          name: conn.mentor_name,
-          skill: conn.mentor_skill,
-          avatar: conn.mentor_avatar || assets.profile,
-          match: conn.match_score,
-        }));
+        console.log('🔍 Raw connections data:', response.connections);
 
+        // Format connections for display
+        const formattedConnections = response.connections.map((conn) => {
+          // Format skills - handle both array and string formats
+          let skillDisplay = conn.mentor_skill;
+          if (Array.isArray(skillDisplay)) {
+            skillDisplay = skillDisplay.join(', ');
+          } else if (typeof skillDisplay === 'string') {
+            // Already a string, use as-is
+            skillDisplay = skillDisplay;
+          } else {
+            skillDisplay = '';
+          }
+
+          return {
+            id: conn.connection_user_id, // Use the actual user ID, not connection table ID
+            name: conn.mentor_name,
+            skill: skillDisplay,
+            avatar: conn.mentor_avatar || assets.profile,
+            match: conn.match_score,
+          };
+        });
+
+        console.log('📋 Formatted connections:', formattedConnections);
         setConnections(formattedConnections);
 
         // Track connected mentor names
