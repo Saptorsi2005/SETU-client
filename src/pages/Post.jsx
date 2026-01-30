@@ -160,12 +160,17 @@ const Post = () => {
         console.log("✅ Mentor API raw data:", res.data);
 
         const formatted = res.data.map((m, index) => {
-          console.log(`Mentor ${index}:`, { id: m.id, name: m.name });
+          console.log(`🔍 Mentor ${index} - ${m.name}:`, {
+            match_percentage: m.match_percentage,
+            score: m.score,
+            skill_match_count: m.skill_match_count,
+            calculated_match: m.match_percentage !== undefined ? m.match_percentage : Math.round((m.score || 0.5) * 100)
+          });
           return {
             id: m.id || index,
             name: m.name,
             skill: m.skills.join(", "),
-            match: Math.round((m.score || 0.5) * 100),
+            match: m.match_percentage !== undefined ? m.match_percentage : Math.round((m.score || 0.5) * 100),
             avatar: m.profile_image || assets.profile,
           };
         });
