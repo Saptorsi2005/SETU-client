@@ -58,6 +58,9 @@ const AlumniSignup = () => {
         throw new Error(data.message || 'Signup failed');
       }
 
+      // Show success message
+      alert("Account created successfully! Redirecting to login for verification check...");
+
       // Store token and user data
       if (data.data?.token) {
         localStorage.setItem('token', data.data.token);

@@ -22,33 +22,41 @@ import StudentSignup from "./pages/StudentSignup";
 import AlumniSignup from "./pages/AlumniSignup";
 import Admin_Directory from "./pages/Admin_Directory";
 import Admin_Dashboard from "./pages/Admin_Dashboard";
+import VerificationPending from "./pages/VerificationPending";
+import ProtectedRoute from "./components/ProtectedRoute";
 // import Feed from "./pages/Feed";
 
 function App() {
   return (
     <div>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<LoginLanding />} />
         <Route path="/alumniLogin" element={<AlumniLogin />} />
         <Route path="/studentLogin" element={<StudentLogin />} />
         <Route path="/adminLogin" element={<AdminLogin />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/addEvents" element={<AddEvents />} />
-        <Route path="/post" element={<Post />} />
-        <Route path="/mentor/:id" element={<MentorProfile />} />
-        <Route path="/donations" element={<Donations />} />
-        <Route path="/redeem" element={<Redeem />} />
-        <Route path="/apply/:jobId" element={<Apply />} />
-        <Route path="/connectionProfile/:id" element={<ConnectionProfile />} />
-        <Route path="/map" element={<Map />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/directory" element={<Admin_Directory />} />
-        <Route path="/dashboard" element={<Admin_Dashboard />} />
-        <Route path="/admin-jobs" element={<Admin_Jobs />} />
         <Route path="/student-signup" element={<StudentSignup />} />
         <Route path="/alumni-signup" element={<AlumniSignup />} />
+        <Route path="/verification-pending" element={<VerificationPending />} />
+
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/events" element={<Events />} />
+          <Route path="/addEvents" element={<AddEvents />} />
+          <Route path="/post" element={<Post />} />
+          <Route path="/mentor/:id" element={<MentorProfile />} />
+          <Route path="/donations" element={<Donations />} />
+          <Route path="/redeem" element={<Redeem />} />
+          <Route path="/apply/:jobId" element={<Apply />} />
+          <Route path="/connectionProfile/:id" element={<ConnectionProfile />} />
+          <Route path="/map" element={<Map />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/directory" element={<Admin_Directory />} />
+          <Route path="/dashboard" element={<Admin_Dashboard />} />
+          <Route path="/admin-jobs" element={<Admin_Jobs />} />
+        </Route>
       </Routes>
     </div>
 
