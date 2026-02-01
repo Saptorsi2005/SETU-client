@@ -6,9 +6,29 @@ const VerificationPending = () => {
     const navigate = useNavigate();
 
     const handleBackToLogin = () => {
+        // NEW: Check user role from localStorage
+        const userData = localStorage.getItem('user');
+        let role = 'student'; // default to student
+
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                role = user.role || 'student';
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+            }
+        }
+
+        // Clear localStorage
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        navigate('/studentLogin');
+
+        // NEW: Navigate based on role
+        if (role === 'alumni') {
+            navigate('/alumniLogin');
+        } else {
+            navigate('/studentLogin'); // existing student behavior
+        }
     };
 
     const handleGoHome = () => {
