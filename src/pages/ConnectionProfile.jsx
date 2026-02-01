@@ -20,7 +20,7 @@ const ConnectionProfile = () => {
         const token = localStorage.getItem("token");
 
         const response = await axios.get(
-          `http://localhost:5001/api/auth/users/${id}`,
+          `${import.meta.env.VITE_API_URL}/api/auth/users/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

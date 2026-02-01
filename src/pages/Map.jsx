@@ -45,7 +45,7 @@ const MapPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const API_URL = "http://localhost:5001/api";
+    const API_URL = import.meta.env.VITE_API_URL + '/api';
 
     // Check if user has location on mount
     useEffect(() => {

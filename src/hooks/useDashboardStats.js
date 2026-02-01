@@ -12,7 +12,7 @@ const useDashboardStats = (refreshInterval = 30000) => {
     totalStudents: 0,
     numberOfEvents: 0,
     numberOfDonations: 0,
-    
+
     // Chart Data
     usersByRole: [],
     alumniVerificationStatus: [],
@@ -30,7 +30,7 @@ const useDashboardStats = (refreshInterval = 30000) => {
       setError(null);
 
       // Fetch KPIs
-      const kpisResponse = await fetch('http://localhost:5001/api/admin/analytics/kpis', {
+      const kpisResponse = await fetch(import.meta.env.VITE_API_URL + '/api/admin/analytics/kpis', {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -48,7 +48,7 @@ const useDashboardStats = (refreshInterval = 30000) => {
       }
 
       // Fetch users by role
-      const roleResponse = await fetch('http://localhost:5001/api/admin/analytics/users-by-role', {
+      const roleResponse = await fetch(import.meta.env.VITE_API_URL + '/api/admin/analytics/users-by-role', {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -60,7 +60,7 @@ const useDashboardStats = (refreshInterval = 30000) => {
       }
 
       // Fetch alumni verification status
-      const verificationResponse = await fetch('http://localhost:5001/api/admin/analytics/alumni-verification-status', {
+      const verificationResponse = await fetch(import.meta.env.VITE_API_URL + '/api/admin/analytics/alumni-verification-status', {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -72,7 +72,7 @@ const useDashboardStats = (refreshInterval = 30000) => {
       }
 
       // Fetch student skills
-      const skillsResponse = await fetch('http://localhost:5001/api/admin/analytics/student-skills', {
+      const skillsResponse = await fetch(import.meta.env.VITE_API_URL + '/api/admin/analytics/student-skills', {
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
       });

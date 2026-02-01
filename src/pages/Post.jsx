@@ -165,7 +165,7 @@ const Post = () => {
         }
 
         const res = await axios.get(
-          "http://localhost:5001/api/mentor-recommend",
+          `${import.meta.env.VITE_API_URL}/api/mentor-recommend`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
