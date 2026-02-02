@@ -30,10 +30,19 @@ const useDashboardStats = (refreshInterval = 30000) => {
       setError(null);
 
       // Fetch KPIs
-      const kpisResponse = await fetch(import.meta.env.VITE_API_URL + '/api/admin/analytics/kpis', {
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const token = localStorage.getItem("token");
+
+      const kpisResponse = await fetch(
+        import.meta.env.VITE_API_URL + "/api/admin/analytics/kpis",
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
 
       let kpisData = {};
       if (kpisResponse.ok) {
