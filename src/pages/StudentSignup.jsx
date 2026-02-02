@@ -35,34 +35,48 @@ const StudentSignup = () => {
     }
 
     const payload = new FormData();
-    payload.append("full_name", formData.name);
+
+    // 🔥 REQUIRED FIELDS (backend expects these)
+    payload.append("name", formData.name);
     payload.append("email", formData.email);
     payload.append("password", formData.password);
+    payload.append("role", "student");
+    payload.append("college", "Academy of Technology");
+
+    // Optional / extra fields (safe to send)
     payload.append("roll_number", formData.rollNumber);
     payload.append("department", formData.department);
-    payload.append("graduation_year", formData.graduationYear);
-    payload.append("student_id_card", idCard);
+    payload.append("batch_year", formData.graduationYear);
+
+    // 🔥 FIX 3 — THIS KEY TRIGGERS OCR
+    payload.append("verification_document", idCard);
 
     try {
       setLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/student/signup`, {
-        method: 'POST',
-        body: payload,
-      });
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/auth/register`,
+        {
+          method: "POST",
+          body: payload,
+        }
+      );
+
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Signup failed');
+        throw new Error(data.message || "Signup failed");
       }
 
-      // Show success message
-      alert("Account created successfully! Redirecting to login for verification check...");
+      alert(
+        "Account created successfully! Your ID is being verified. Redirecting to login..."
+      );
 
-      // Store token and redirect to login
       if (data.data?.token) {
-        localStorage.setItem('token', data.data.token);
-        localStorage.setItem('user', JSON.stringify(data.data.user));
+        localStorage.setItem("token", data.data.token);
+        localStorage.setItem("user", JSON.stringify(data.data.user));
       }
+
       navigate("/studentLogin");
     } catch (err) {
       setError(err.message || "Signup failed.");
@@ -70,6 +84,7 @@ const StudentSignup = () => {
       setLoading(false);
     }
   };
+
 
   return (
     <div
