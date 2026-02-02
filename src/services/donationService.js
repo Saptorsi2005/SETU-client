@@ -8,7 +8,7 @@ export const createCheckoutSession = async (amount, alumniData) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.post(
-      `${API_URL}/donations/create-checkout-session`,
+      `${API_URL}/api/donations/create-checkout-session`,
       {
         amount,
         alumniId: alumniData.alumniId,
@@ -35,7 +35,7 @@ export const verifyPayment = async (sessionId) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-      `${API_URL}/donations/verify/${sessionId}`,
+      `${API_URL}/api/donations/verify/${sessionId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -55,7 +55,7 @@ export const getRecentDonations = async (limit = 10) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-      `${API_URL}/donations/recent?limit=${limit}`,
+      `${API_URL}/api/donations/recent?limit=${limit}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -76,8 +76,8 @@ export const getDonationAnalytics = async (alumniId = null) => {
     const token = localStorage.getItem("token");
 
     const url = alumniId
-      ? `${API_URL}/donations/analytics?alumniId=${alumniId}`
-      : `${API_URL}/donations/analytics`;
+      ? `${API_URL}/api/donations/analytics?alumniId=${alumniId}`
+      : `${API_URL}/api/donations/analytics`;
 
     const response = await axios.get(url, {
       headers: {
@@ -98,7 +98,7 @@ export const getAlumniDonations = async (alumniId) => {
     const token = localStorage.getItem("token");
 
     const response = await axios.get(
-      `${API_URL}/donations/alumni/${alumniId}`,
+      `${API_URL}/api/donations/alumni/${alumniId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
