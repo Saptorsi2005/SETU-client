@@ -57,10 +57,15 @@ const useDashboardStats = (refreshInterval = 30000) => {
       }
 
       // Fetch users by role
-      const roleResponse = await fetch(import.meta.env.VITE_API_URL + '/api/admin/analytics/users-by-role', {
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const roleResponse = await fetch(
+        import.meta.env.VITE_API_URL + "/api/admin/analytics/users-by-role",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       let rolesData = { labels: [], datasets: [] };
       if (roleResponse.ok) {
@@ -69,10 +74,15 @@ const useDashboardStats = (refreshInterval = 30000) => {
       }
 
       // Fetch alumni verification status
-      const verificationResponse = await fetch(import.meta.env.VITE_API_URL + '/api/admin/analytics/alumni-verification-status', {
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const verificationResponse = await fetch(
+        import.meta.env.VITE_API_URL + "/api/admin/analytics/alumni-verification-status",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       let verificationData = { labels: [], datasets: [] };
       if (verificationResponse.ok) {
@@ -81,10 +91,15 @@ const useDashboardStats = (refreshInterval = 30000) => {
       }
 
       // Fetch student skills
-      const skillsResponse = await fetch(import.meta.env.VITE_API_URL + '/api/admin/analytics/student-skills', {
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const skillsResponse = await fetch(
+        import.meta.env.VITE_API_URL + "/api/admin/analytics/student-skills",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       let skillsData = { labels: [], datasets: [] };
       if (skillsResponse.ok) {
