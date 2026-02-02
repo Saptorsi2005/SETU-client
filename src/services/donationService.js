@@ -52,28 +52,45 @@ export const verifyPayment = async (sessionId) => {
 // ✅ Get recent donations
 export const getRecentDonations = async (limit = 10) => {
   try {
+    const token = localStorage.getItem("token");
+
     const response = await axios.get(
-      `${API_URL}/donations/recent?limit=${limit}`
+      `${API_URL}/donations/recent?limit=${limit}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
+
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
   }
 };
+
 
 // ✅ Get donation analytics (uses alumniId)
 export const getDonationAnalytics = async (alumniId = null) => {
   try {
+    const token = localStorage.getItem("token");
+
     const url = alumniId
       ? `${API_URL}/donations/analytics?alumniId=${alumniId}`
       : `${API_URL}/donations/analytics`;
 
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
   }
 };
+
 
 // ✅ Get alumni donations (uses alumniId)
 export const getAlumniDonations = async (alumniId) => {

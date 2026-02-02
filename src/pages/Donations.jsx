@@ -44,16 +44,18 @@ const Donations = () => {
 
   // ✅ Fetch donation data
   const fetchData = async (currentUser) => {
-    if (!currentUser) return;
+    if (!currentUser || !currentUser.id) return;
 
     try {
       setLoadingData(true);
 
-      const alumniId = currentUser.id;
+      const isAlumni = currentUser.role === "alumni";
 
       const [donationsRes, analyticsRes] = await Promise.all([
         getRecentDonations(5),
-        getDonationAnalytics(alumniId),
+        isAlumni
+          ? getDonationAnalytics(currentUser.id)
+          : getDonationAnalytics(),
       ]);
 
       setRecentDonations(donationsRes?.donations || []);
@@ -64,6 +66,7 @@ const Donations = () => {
       setLoadingData(false);
     }
   };
+
 
   // Fetch data when user is loaded
   useEffect(() => {
