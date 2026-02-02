@@ -47,7 +47,7 @@ const AlumniSignup = () => {
     try {
       setLoading(true);
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/alumni/signup`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/alumni/signup`, {
         method: 'POST',
         body: payload,
       });
