@@ -213,45 +213,46 @@ const Messages = () => {
   };
 
   const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '';
+    if (!timestamp) return "";
 
-    // Parse the UTC timestamp from database
-    const utcDate = new Date(timestamp);
+    const date = new Date(timestamp);
 
-    // Convert UTC to IST by adding 5 hours 30 minutes (19800000 milliseconds)
-    const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
-    const istDate = new Date(utcDate.getTime() + istOffset);
+    const options = {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    };
 
     const now = new Date();
-    const nowIST = new Date(now.getTime() + istOffset);
+    const istToday = now.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
 
-    // Check if message is from today (in IST)
-    const isToday = istDate.toDateString() === nowIST.toDateString();
+    const messageDate = date.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
 
-    // Check if message is from yesterday (in IST)
-    const yesterday = new Date(nowIST);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const isYesterday = istDate.toDateString() === yesterday.toDateString();
+    const timeString = date.toLocaleTimeString("en-IN", options);
 
-    // Format time in 12-hour format (IST)
-    const hours = istDate.getHours();
-    const minutes = istDate.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes < 10 ? '0' + minutes : minutes;
-    const timeString = `${displayHours}:${displayMinutes} ${ampm}`;
-
-    if (isToday) {
-      return timeString; // e.g., "12:05 PM"
-    } else if (isYesterday) {
-      return `Yesterday ${timeString}`; // e.g., "Yesterday 3:45 PM"
-    } else {
-      // Show date and time
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const dateString = `${months[istDate.getMonth()]} ${istDate.getDate()}`;
-      return `${dateString} ${timeString}`; // e.g., "Jan 29 2:30 PM"
+    if (messageDate === istToday) {
+      return timeString;
     }
+
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const istYesterday = yesterday.toLocaleDateString("en-IN", {
+      timeZone: "Asia/Kolkata",
+    });
+
+    if (messageDate === istYesterday) {
+      return `Yesterday ${timeString}`;
+    }
+
+    return `${messageDate} ${timeString}`;
   };
+
 
   const renderMessage = (msg) => {
     const isMe = msg.sender_id === currentUserId;
