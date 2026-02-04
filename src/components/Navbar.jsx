@@ -17,20 +17,20 @@ const Navbar = () => {
   // Build nav links at render-time (safe if user is null)
   const navLinks = isAdmin
     ? [
-        { name: "Directory", path: "/directory" },
-        { name: "Dashboard", path: "/dashboard" },
-        { name: "Events", path: "/events" },
-        { name: "Jobs", path: "/admin-jobs" },
-      ]
+      { name: "Directory", path: "/directory" },
+      { name: "Dashboard", path: "/dashboard" },
+      { name: "Events", path: "/events" },
+      { name: "Jobs", path: "/admin-jobs" },
+    ]
     : [
-        { name: "Home", path: "/home" },
-        { name: "Posts", path: "/post" },
-        user?.role === "alumni" && { name: "Donations", path: "/donations" },
-        { name: "Event", path: "/events" },
-        { name: "Messages", path: "/messages" },
-        user?.role === "student" && { name: "Redeem", path: "/redeem" },
-        { name: "Map", path: "/map" },
-      ].filter(Boolean); // remove falsy entries
+      { name: "Home", path: "/home" },
+      { name: "Posts", path: "/post" },
+      user?.role === "alumni" && { name: "Donations", path: "/donations" },
+      { name: "Event", path: "/events" },
+      { name: "Messages", path: "/messages" },
+      user?.role === "student" && { name: "Redeem", path: "/redeem" },
+      { name: "Map", path: "/map" },
+    ].filter(Boolean); // remove falsy entries
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -47,7 +47,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="w-full bg-black/70 backdrop-blur-md shadow-md px-6 py-4 fixed top-0 left-0 z-50 flex items-center">
+    <nav className="w-full bg-black/70 backdrop-blur-md shadow-md px-6 py-4 fixed top-0 left-0 z-2000 flex items-center">
       {/* Left side: Logo */}
       <div
         onClick={() => navigate(isAdmin ? "/dashboard" : "/home")}
@@ -102,7 +102,7 @@ const Navbar = () => {
         </button>
 
         {dropdownOpen && (
-          <ul className="absolute right-0 mt-2 w-44 bg-black/90 rounded-md shadow-lg ring-1 ring-white ring-opacity-20 focus:outline-none text-white">
+          <ul className="absolute right-0 mt-2 w-44 bg-black/90 rounded-md shadow-lg ring-1 ring-white ring-opacity-20 focus:outline-none text-white z-3000">
             {/* hide profile/settings for admin (as requested) */}
             {!isAdmin && (
               <>

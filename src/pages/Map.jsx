@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { FaMapMarkerAlt, FaBriefcase, FaGraduationCap, FaArrowLeft } from "react-icons/fa";
@@ -341,11 +341,14 @@ const MapPage = () => {
                 zoom={11}
                 className="h-full w-full"
                 scrollWheelZoom={true}
+                zoomControl={false}
             >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
                 />
+
+                <ZoomControl position="bottomleft" />
 
                 {/* User location marker */}
                 <Marker position={[userLocation.latitude, userLocation.longitude]} icon={userIcon}>
