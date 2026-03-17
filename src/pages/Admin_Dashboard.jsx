@@ -42,8 +42,8 @@ const Admin_Dashboard = () => {
       datasets: [{
         label: 'Users',
         data: data.map(d => d.count || 0),
-        backgroundColor: ['#3B82F6', '#8B5CF6', '#EC4899'],
-        borderColor: ['#2563EB', '#7C3AED', '#DB2777'],
+        backgroundColor: ['#C5B239', '#8B5CF6', '#EC4899'],
+        borderColor: ['#a89628', '#7C3AED', '#DB2777'],
         borderWidth: 2
       }]
     };
@@ -85,8 +85,8 @@ const Admin_Dashboard = () => {
       datasets: [{
         label: 'Students',
         data: data.map(d => d.count || 0),
-        backgroundColor: '#6366F1',
-        borderColor: '#4F46E5',
+        backgroundColor: '#C5B239',
+        borderColor: '#a89628',
         borderWidth: 2,
         borderRadius: 6
       }]
@@ -136,16 +136,22 @@ const Admin_Dashboard = () => {
   return (
     <div>
       <Navbar />
-      <div className="pt-24 min-h-screen bg-black text-white p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-[#F0D41D]">Admin Dashboard</h1>
+      <div className="min-h-screen bg-[#0a0a0a] text-white p-6 md:p-10 pt-28 md:pt-20">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6 mb-10">
+          <div className="space-y-1">
+            <div className="flex items-center gap-4 mb-1">
+              <div className="h-1 w-10 bg-gradient-to-r from-[#C5B239] to-purple-500 rounded-full"></div>
+              <h1 className="text-3xl font-bold tracking-tight">ADMIN <span className="font-light text-gray-400">DASHBOARD</span></h1>
+            </div>
+            <p className="text-gray-500 text-sm pl-14 font-medium uppercase tracking-wider">Strategic insights and network analytics</p>
+          </div>
           <button
             onClick={refresh}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-[#F0D41D] text-black rounded-lg hover:bg-yellow-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2.5 px-6 py-2.5 bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black rounded-xl font-bold transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:hover:scale-100 shadow-lg group"
           >
-            <FaSync className={loading ? 'animate-spin' : ''} />
-            Refresh
+            <FaSync className={`${loading ? 'animate-spin' : 'group-hover:rotate-180'} transition-transform duration-500`} />
+            <span className="text-sm">REFRESH ANALYTICS</span>
           </button>
         </div>
 
@@ -158,76 +164,108 @@ const Admin_Dashboard = () => {
 
         {/* KPI Cards */}
         {loading ? (
-          <div className="text-center py-8 text-gray-400">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#F0D41D]"></div>
-            <p className="mt-4">Loading analytics...</p>
+          <div className="flex flex-col items-center justify-center py-20 bg-gray-900/10 rounded-3xl border border-gray-800/50">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 border-4 border-[#C5B239]/20 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-[#C5B239] border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <p className="mt-6 text-gray-500 font-bold uppercase tracking-widest text-xs">Synchronizing metrics...</p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-gray-800 border border-gray-600 p-6 rounded-xl hover:bg-gray-750 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-gray-400 text-sm font-medium">Total Users</h3>
-                  <FaUsers className="text-[#F0D41D] text-xl" />
+              <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl hover:border-[#C5B239]/30 transition-all duration-300 group shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center border border-blue-500/20 group-hover:border-blue-500/40 transition-colors">
+                    <FaUsers className="text-blue-400 text-lg" />
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Total</span>
                 </div>
-                <p className="text-3xl font-bold text-white">{stats.totalUsers}</p>
-                <p className="text-xs text-gray-500 mt-1">Students + Alumni</p>
+                <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Users</h3>
+                <p className="text-3xl font-bold text-white tracking-tighter group-hover:text-[#C5B239] transition-colors">{stats.totalUsers}</p>
+                <div className="mt-3 h-1 w-full bg-gray-900 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 w-[70%]"></div>
+                </div>
               </div>
 
-              <div className="bg-gray-800 border border-gray-600 p-6 rounded-xl hover:bg-gray-750 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-gray-400 text-sm font-medium">Total Alumni</h3>
-                  <FaUserGraduate className="text-blue-400 text-xl" />
+              <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl hover:border-[#C5B239]/30 transition-all duration-300 group shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center border border-purple-500/20 group-hover:border-purple-500/40 transition-colors">
+                    <FaUserGraduate className="text-purple-400 text-lg" />
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Alumni</span>
                 </div>
-                <p className="text-3xl font-bold text-white">{stats.totalAlumni}</p>
-                <p className="text-xs text-gray-500 mt-1">Alumni accounts</p>
+                <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Network</h3>
+                <p className="text-3xl font-bold text-white tracking-tighter group-hover:text-[#C5B239] transition-colors">{stats.totalAlumni}</p>
+                <div className="mt-3 h-1 w-full bg-gray-900 rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500 w-[45%]"></div>
+                </div>
               </div>
 
-              <div className="bg-gray-800 border border-gray-600 p-6 rounded-xl hover:bg-gray-750 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-gray-400 text-sm font-medium">No. of Events</h3>
-                  <FaCalendar className="text-green-400 text-xl" />
+              <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl hover:border-[#C5B239]/30 transition-all duration-300 group shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-green-500/10 rounded-xl flex items-center justify-center border border-green-500/20 group-hover:border-green-500/40 transition-colors">
+                    <FaCalendar className="text-green-400 text-lg" />
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Live</span>
                 </div>
-                <p className="text-3xl font-bold text-white">{stats.numberOfEvents}</p>
-                <p className="text-xs text-gray-500 mt-1">Total events created</p>
+                <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Events</h3>
+                <p className="text-3xl font-bold text-white tracking-tighter group-hover:text-[#C5B239] transition-colors">{stats.numberOfEvents}</p>
+                <div className="mt-3 h-1 w-full bg-gray-900 rounded-full overflow-hidden">
+                  <div className="h-full bg-green-500 w-[60%]"></div>
+                </div>
               </div>
 
-              <div className="bg-gray-800 border border-gray-600 p-6 rounded-xl hover:bg-gray-750 transition-all">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-gray-400 text-sm font-medium">No. of Donations</h3>
-                  <FaDonate className="text-purple-400 text-xl" />
+              <div className="bg-[#111] border border-gray-800 p-6 rounded-2xl hover:border-[#C5B239]/30 transition-all duration-300 group shadow-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 bg-[#C5B239]/10 rounded-xl flex items-center justify-center border border-[#C5B239]/20 group-hover:border-[#C5B239]/40 transition-colors">
+                    <FaDonate className="text-[#C5B239] text-lg" />
+                  </div>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Funds</span>
                 </div>
-                <p className="text-3xl font-bold text-white">{stats.numberOfDonations}</p>
-                <p className="text-xs text-gray-500 mt-1">Total Donations</p>
+                <h3 className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Donations</h3>
+                <p className="text-3xl font-bold text-white tracking-tighter group-hover:text-[#C5B239] transition-colors">{stats.numberOfDonations}</p>
+                <div className="mt-3 h-1 w-full bg-gray-900 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#C5B239] w-[80%]"></div>
+                </div>
               </div>
             </div>
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               {/* Users by Role Chart */}
-              <div className="bg-gray-800 border border-gray-600 p-6 rounded-xl">
-                <h3 className="text-lg font-semibold text-[#F0D41D] mb-4">Users by Role</h3>
+              <div className="bg-[#111] border border-gray-800 p-7 rounded-2xl shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-widest">User Distribution</h3>
+                  <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
+                </div>
                 <div className="h-64 flex items-center justify-center">
                   <Doughnut data={usersByRoleChart} options={chartOptions} />
                 </div>
               </div>
 
               {/* Alumni Verification Status Chart */}
-              <div className="bg-gray-800 border border-gray-600 p-6 rounded-xl">
-                <h3 className="text-lg font-semibold text-[#F0D41D] mb-4">Alumni Verification Status</h3>
+              <div className="bg-[#111] border border-gray-800 p-7 rounded-2xl shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-widest">Verification Status</h3>
+                  <div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]"></div>
+                </div>
                 <div className="h-64 flex items-center justify-center">
                   <Doughnut data={alumniVerificationChart} options={chartOptions} />
                 </div>
               </div>
 
               {/* Student Skills Chart */}
-              <div className="bg-gray-800 border border-gray-600 p-6 rounded-xl">
-                <h3 className="text-lg font-semibold text-[#F0D41D] mb-4">Top Student Skills</h3>
+              <div className="bg-[#111] border border-gray-800 p-7 rounded-2xl shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-sm font-bold text-white uppercase tracking-widest">Top Capabilities</h3>
+                  <div className="w-2 h-2 rounded-full bg-[#C5B239] shadow-[0_0_8px_rgba(197,178,57,0.5)]"></div>
+                </div>
                 <div className="h-64 flex items-center justify-center">
                   {studentSkillsChart ? (
                     <Bar data={studentSkillsChart} options={barChartOptions} />
                   ) : (
-                    <p className="text-gray-500 text-sm">No data available</p>
+                    <p className="text-gray-600 text-xs font-bold uppercase tracking-widest italic">Insufficient data points</p>
                   )}
                 </div>
               </div>

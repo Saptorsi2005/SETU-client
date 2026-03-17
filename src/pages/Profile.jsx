@@ -296,146 +296,172 @@ const Profile = () => {
 
       <div className="min-h-screen bg-gray-900 px-4 py-8 pt-20 flex flex-col items-center">
         {/* ------------------ TOP SECTION ------------------ */}
-        <div className="w-full max-w-4xl bg-gray-800/90 rounded-xl border border-gray-700 shadow-lg p-6 mb-8 flex gap-6">
-          <div className="relative w-28 h-28 bg-gray-700 rounded-full overflow-hidden group">
-            <img
-              src={profile.profile_image || assets.profile}
-              alt="avatar"
-              className="w-full h-full object-cover"
-            />
-            <label
-              htmlFor="profile-picture-input"
-              className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-            >
-              {uploadingImage ? (
-                <span className="text-white text-sm">Uploading...</span>
-              ) : (
-                <FaCamera className="text-white text-2xl" />
-              )}
-            </label>
-            <input
-              id="profile-picture-input"
-              type="file"
-              accept="image/*"
-              onChange={handleProfilePictureChange}
-              className="hidden"
-              disabled={uploadingImage}
-            />
+        {/* ------------------ TOP SECTION ------------------ */}
+        <div className="w-full max-w-4xl bg-gray-800/90 rounded-xl border border-gray-700 shadow-lg p-6 mb-8 flex flex-col md:flex-row gap-6 relative">
+          {/* Edit Button Positioned Absolute on Desktop, Relative/Centered on Mobile if preferred, or nicely tucked. 
+              Let's keep it simple: Flex-row on desktop, nicely stacked on mobile. 
+          */}
+
+          <div className="flex-shrink-0 mx-auto md:mx-0">
+            <div className="relative w-32 h-32 bg-gray-700 rounded-full overflow-hidden group border-4 border-gray-700/50 shadow-inner">
+              <img
+                src={profile.profile_image || assets.profile}
+                alt="avatar"
+                className="w-full h-full object-cover"
+              />
+              <label
+                htmlFor="profile-picture-input"
+                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              >
+                {uploadingImage ? (
+                  <span className="text-white text-xs">Uploading...</span>
+                ) : (
+                  <FaCamera className="text-white text-xl" />
+                )}
+              </label>
+              <input
+                id="profile-picture-input"
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePictureChange}
+                className="hidden"
+                disabled={uploadingImage}
+              />
+            </div>
           </div>
 
-          <div className="flex-1">
-            <div className="flex justify-between">
-              <div className="flex gap-3 text-xl">
-                <button
-                  onClick={() => handleSocialClick('linkedin')}
-                  className={`${profile.linkedin_url ? 'text-blue-500 hover:text-blue-400' : 'text-gray-400 hover:text-gray-300'} transition-colors`}
-                  title={profile.linkedin_url ? 'Visit LinkedIn profile' : 'Add LinkedIn URL'}
-                >
-                  <FaLinkedin />
-                </button>
-                <button
-                  onClick={() => handleSocialClick('github')}
-                  className={`${profile.github_url ? 'text-gray-300 hover:text-white' : 'text-gray-400 hover:text-gray-300'} transition-colors`}
-                  title={profile.github_url ? 'Visit GitHub profile' : 'Add GitHub URL'}
-                >
-                  <FaGithub />
-                </button>
-                <button
-                  onClick={() => handleSocialClick('facebook')}
-                  className={`${profile.facebook_url ? 'text-blue-600 hover:text-blue-500' : 'text-gray-400 hover:text-gray-300'} transition-colors`}
-                  title={profile.facebook_url ? 'Visit Facebook profile' : 'Add Facebook URL'}
-                >
-                  <FaFacebook />
-                </button>
-              </div>
-
-              {!editingTop && (
-                <button
-                  onClick={() => {
-                    setTopDraft({
-                      name: profile.name,
-                      pronouns: profile.pronouns,
-                      degree: profile.degree,
-                      bio: profile.bio,
-                      linkedin_url: profile.linkedin_url,
-                      github_url: profile.github_url,
-                      facebook_url: profile.facebook_url,
-                    });
-                    setEditingTop(true);
-                  }}
-                  className="bg-[#C5B239] text-black px-4 py-1 rounded-full text-sm"
-                >
-                  Edit Profile
-                </button>
-              )}
-            </div>
-
-            {!editingTop && (
+          <div className="flex-1 text-center md:text-left">
+            {!editingTop ? (
               <>
-                <h1 className="text-2xl font-bold mt-2 text-white">
-                  {profile.name || <span className="text-gray-500 italic">Click "Edit Profile" to add your name</span>}
-                  {profile.name && (
-                    <span className="ml-2 text-gray-400 text-base">
-                      {profile.pronouns || ""}
-                    </span>
-                  )}
-                </h1>
-                <p className="text-gray-300">{profile.degree || "No degree specified"}</p>
-                <h2 className="mt-3 font-semibold text-white">BIO</h2>
-                <p className="text-gray-200">{profile.bio || "No bio added yet"}</p>
+                <div className="flex flex-col md:flex-row justify-between items-center md:items-start mb-2">
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center justify-center md:justify-start gap-2 flex-wrap">
+                      {profile.name || <span className="text-gray-500 italic text-xl">Your Name</span>}
+                      {profile.name && profile.pronouns && (
+                        <span className="text-gray-400 text-sm font-normal bg-gray-700/50 px-2 py-0.5 rounded-full">
+                          {profile.pronouns}
+                        </span>
+                      )}
+                    </h1>
+                    <p className="text-[#C5B239] font-medium mt-1">{profile.degree || "No degree specified"}</p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setTopDraft({
+                        name: profile.name,
+                        pronouns: profile.pronouns,
+                        degree: profile.degree,
+                        bio: profile.bio,
+                        linkedin_url: profile.linkedin_url,
+                        github_url: profile.github_url,
+                        facebook_url: profile.facebook_url,
+                      });
+                      setEditingTop(true);
+                    }}
+                    className="mt-4 md:mt-0 bg-[#C5B239] text-black px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-[#b9a531] transition-colors shadow-md"
+                  >
+                    Edit Profile
+                  </button>
+                </div>
+
+                <div className="my-4 bg-gray-900/30 p-3 rounded-lg border border-gray-700/30 inline-block w-full text-left">
+                  <h2 className="text-xs uppercase tracking-wider text-gray-500 font-bold mb-1">Bio</h2>
+                  <p className="text-gray-200 leading-relaxed text-sm md:text-base">
+                    {profile.bio || "No bio added yet. Click 'Edit Profile' to introduce yourself."}
+                  </p>
+                </div>
+
+                <div className="flex justify-center md:justify-start gap-4 mt-2">
+                  <button
+                    onClick={() => handleSocialClick('linkedin')}
+                    className={`p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 transition-all ${profile.linkedin_url ? 'text-[#0077b5]' : 'text-gray-500'}`}
+                    title={profile.linkedin_url ? 'Visit LinkedIn' : 'Add LinkedIn URL'}
+                  >
+                    <FaLinkedin size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleSocialClick('github')}
+                    className={`p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 transition-all ${profile.github_url ? 'text-white' : 'text-gray-500'}`}
+                    title={profile.github_url ? 'Visit GitHub' : 'Add GitHub URL'}
+                  >
+                    <FaGithub size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleSocialClick('facebook')}
+                    className={`p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 transition-all ${profile.facebook_url ? 'text-[#1877F2]' : 'text-gray-500'}`}
+                    title={profile.facebook_url ? 'Visit Facebook' : 'Add Facebook URL'}
+                  >
+                    <FaFacebook size={20} />
+                  </button>
+                </div>
               </>
-            )}
-            {editingTop && (
-              <div className="mt-3 space-y-3">
-                <input
-                  className="w-full bg-gray-800 text-white p-2 rounded"
-                  placeholder="Name"
-                  value={topDraft.name}
-                  onChange={(e) =>
-                    setTopDraft({ ...topDraft, name: e.target.value })
-                  }
-                />
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">Edit Profile Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-gray-400 text-sm mb-1 block">Full Name</label>
+                    <input
+                      className="w-full bg-gray-800 text-white p-2 rounded focus:ring-1 focus:ring-[#C5B239] outline-none border border-gray-700"
+                      placeholder="Name"
+                      value={topDraft.name}
+                      onChange={(e) =>
+                        setTopDraft({ ...topDraft, name: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="text-gray-400 text-sm mb-1 block">Pronouns</label>
+                    <select
+                      className="w-full bg-gray-800 text-white p-2 rounded focus:ring-1 focus:ring-[#C5B239] outline-none border border-gray-700"
+                      value={topDraft.pronouns}
+                      onChange={(e) =>
+                        setTopDraft({ ...topDraft, pronouns: e.target.value })
+                      }
+                    >
+                      <option value="">Select Pronouns</option>
+                      {PRONOUN_OPTIONS.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-                <select
-                  className="w-full bg-gray-800 text-white p-2 rounded"
-                  value={topDraft.pronouns}
-                  onChange={(e) =>
-                    setTopDraft({ ...topDraft, pronouns: e.target.value })
-                  }
-                >
-                  {PRONOUN_OPTIONS.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
+                <div>
+                  <label className="text-gray-400 text-sm mb-1 block">Degree / Headline</label>
+                  <input
+                    className="w-full bg-gray-800 text-white p-2 rounded focus:ring-1 focus:ring-[#C5B239] outline-none border border-gray-700"
+                    placeholder="Degree (e.g., B.Tech, Computer Science and Engineering, 2021 batch)"
+                    value={topDraft.degree}
+                    onChange={(e) =>
+                      setTopDraft({ ...topDraft, degree: e.target.value })
+                    }
+                  />
+                </div>
 
-                <input
-                  className="w-full bg-gray-800 text-white p-2 rounded"
-                  placeholder="Degree (e.g., B.Tech, Computer Science and Engineering, 2021 batch)"
-                  value={topDraft.degree}
-                  onChange={(e) =>
-                    setTopDraft({ ...topDraft, degree: e.target.value })
-                  }
-                />
+                <div>
+                  <label className="text-gray-400 text-sm mb-1 block">Bio</label>
+                  <textarea
+                    className="w-full bg-gray-800 text-white p-2 rounded h-24 focus:ring-1 focus:ring-[#C5B239] outline-none border border-gray-700"
+                    placeholder="Bio"
+                    value={topDraft.bio}
+                    onChange={(e) =>
+                      setTopDraft({ ...topDraft, bio: e.target.value })
+                    }
+                  />
+                </div>
 
-                <textarea
-                  className="w-full bg-gray-800 text-white p-2 rounded h-24"
-                  placeholder="Bio"
-                  value={topDraft.bio}
-                  onChange={(e) =>
-                    setTopDraft({ ...topDraft, bio: e.target.value })
-                  }
-                />
-
-                <div className="border-t border-gray-700 pt-3 mt-3">
+                <div className="border-t border-gray-700 pt-3">
                   <h3 className="text-sm font-semibold text-gray-300 mb-2">Social Media Links</h3>
 
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <FaLinkedin className="text-blue-500" />
                       <input
-                        className="flex-1 bg-gray-800 text-white p-2 rounded text-sm"
+                        className="flex-1 bg-gray-800 text-white p-2 rounded text-sm border border-gray-700 focus:border-[#C5B239] outline-none"
                         placeholder="LinkedIn URL (e.g., https://linkedin.com/in/username)"
                         value={topDraft.linkedin_url}
                         onChange={(e) =>
@@ -447,7 +473,7 @@ const Profile = () => {
                     <div className="flex items-center gap-2">
                       <FaGithub className="text-gray-300" />
                       <input
-                        className="flex-1 bg-gray-800 text-white p-2 rounded text-sm"
+                        className="flex-1 bg-gray-800 text-white p-2 rounded text-sm border border-gray-700 focus:border-[#C5B239] outline-none"
                         placeholder="GitHub URL (e.g., https://github.com/username)"
                         value={topDraft.github_url}
                         onChange={(e) =>
@@ -459,7 +485,7 @@ const Profile = () => {
                     <div className="flex items-center gap-2">
                       <FaFacebook className="text-blue-600" />
                       <input
-                        className="flex-1 bg-gray-800 text-white p-2 rounded text-sm"
+                        className="flex-1 bg-gray-800 text-white p-2 rounded text-sm border border-gray-700 focus:border-[#C5B239] outline-none"
                         placeholder="Facebook URL (e.g., https://facebook.com/username)"
                         value={topDraft.facebook_url}
                         onChange={(e) =>
@@ -473,7 +499,7 @@ const Profile = () => {
                 <div className="flex gap-2 justify-end">
                   <button
                     onClick={() => setEditingTop(false)}
-                    className="px-4 py-1 bg-gray-600 rounded"
+                    className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -493,14 +519,13 @@ const Profile = () => {
                         alert(errorMessage);
                       }
                     }}
-                    className="px-4 py-1 bg-[#C5B239] text-black rounded"
+                    className="px-6 py-2 bg-[#C5B239] text-black font-semibold rounded hover:bg-[#b9a531] transition-colors"
                   >
-                    Save
+                    Save Changes
                   </button>
                 </div>
               </div>
             )}
-
           </div>
         </div>
 

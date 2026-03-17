@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl } from "rea
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { FaMapMarkerAlt, FaBriefcase, FaGraduationCap, FaArrowLeft } from "react-icons/fa";
+import { X } from "lucide-react";
 import axios from "axios";
 
 // Fix leaflet default marker icon issue
@@ -45,8 +46,7 @@ const MapPage = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    const API_URL = import.meta.env.VITE_API_URL + '/api';
-
+const API_URL = import.meta.env.VITE_API_URL + "/api";
     // Check if user has location on mount
     useEffect(() => {
         checkUserLocation();
@@ -182,74 +182,83 @@ const MapPage = () => {
     };
 
     const renderLocationInput = () => (
-        <div className="w-full max-w-4xl mx-auto bg-gradient-to-b from-gray-50 to-gray-100 rounded-2xl shadow-lg p-6">
+        <div className="w-full max-w-4xl mx-auto bg-[#111] rounded-2xl shadow-2xl p-6 md:p-8 border border-gray-800">
             {/* Back button */}
             <button
                 onClick={() => navigate("/home")}
-                className="mb-4 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition"
+                className="mb-5 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             >
                 <FaArrowLeft />
-                <span>Back to Home</span>
+                <span className="text-sm font-medium">Back to Home</span>
             </button>
 
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-                Set Your Location
-            </h2>
-            <p className="text-gray-600 text-center mb-6">
+            <div className="flex items-center gap-4 mb-2">
+                <div className="h-1 w-10 bg-gradient-to-r from-[#C5B239] to-purple-500 rounded-full"></div>
+                <h2 className="text-2xl font-bold text-white">
+                    Set Your Location
+                </h2>
+            </div>
+            <p className="text-gray-500 text-sm mb-6 pl-14">
                 To see nearby connections, please set your location first
             </p>
 
             {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                <div className="bg-red-500/10 border border-red-500/30 text-red-300 px-5 py-3.5 rounded-xl mb-6 text-sm font-medium">
                     {error}
                 </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Get My Location (GPS) */}
-                <div className="bg-white rounded-xl p-6 shadow-md border-2 border-gray-200 hover:border-[#C5B239] transition">
-                    <h3 className="text-lg font-bold text-gray-800 mb-3 text-center">Get My Location</h3>
-                    <p className="text-sm text-gray-600 mb-4 text-center">Use your device's GPS</p>
+                <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800 hover:border-[#C5B239]/30 transition-all group">
+                    <div className="w-12 h-12 bg-[#C5B239]/10 rounded-xl flex items-center justify-center mb-4 mx-auto border border-[#C5B239]/20">
+                        <FaMapMarkerAlt className="text-[#C5B239] text-lg" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2 text-center">Get My Location</h3>
+                    <p className="text-sm text-gray-500 mb-5 text-center">Use your device's GPS</p>
                     <button
                         onClick={handleGPSLocation}
                         disabled={loading}
-                        className="w-full bg-[#C5B239] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50"
+                        className="w-full bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black py-3 rounded-xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
                     >
                         {loading ? "Getting Location..." : "Use GPS"}
                     </button>
                 </div>
 
                 {/* Manual Input */}
-                <div className="bg-white rounded-xl p-6 shadow-md border-2 border-gray-200 hover:border-[#C5B239] transition">
-                    <h3 className="text-lg font-bold text-gray-800 mb-3 text-center">Manual Input</h3>
-                    <p className="text-sm text-gray-600 mb-4 text-center">Enter coordinates manually</p>
+                <div className="bg-gray-900/50 rounded-2xl p-6 border border-gray-800 hover:border-[#C5B239]/30 transition-all">
+                    <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 mx-auto border border-purple-500/20">
+                        <FaMapMarkerAlt className="text-purple-400 text-lg" />
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2 text-center">Manual Input</h3>
+                    <p className="text-sm text-gray-500 mb-5 text-center">Enter coordinates manually</p>
                     <div className="space-y-3">
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1 text-sm">Latitude</label>
+                            <label className="block text-gray-400 font-medium mb-1.5 text-xs uppercase tracking-wider">Latitude</label>
                             <input
                                 type="number"
                                 step="any"
                                 value={manualLat}
                                 onChange={(e) => setManualLat(e.target.value)}
                                 placeholder="e.g., 19.076"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C5B239] text-sm"
+                                className="w-full px-3.5 py-2.5 bg-black/40 border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#C5B239]/50 transition-colors text-sm placeholder-gray-600"
                             />
                         </div>
                         <div>
-                            <label className="block text-gray-700 font-medium mb-1 text-sm">Longitude</label>
+                            <label className="block text-gray-400 font-medium mb-1.5 text-xs uppercase tracking-wider">Longitude</label>
                             <input
                                 type="number"
                                 step="any"
                                 value={manualLon}
                                 onChange={(e) => setManualLon(e.target.value)}
                                 placeholder="e.g., 72.8777"
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C5B239] text-sm"
+                                className="w-full px-3.5 py-2.5 bg-black/40 border border-gray-800 rounded-xl text-white focus:outline-none focus:border-[#C5B239]/50 transition-colors text-sm placeholder-gray-600"
                             />
                         </div>
                         <button
                             onClick={handleManualLocation}
                             disabled={loading}
-                            className="w-full bg-[#C5B239] text-white py-3 rounded-lg font-semibold hover:opacity-90 transition disabled:opacity-50"
+                            className="w-full bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black py-3 rounded-xl font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
                         >
                             {loading ? "Saving..." : "Set Location"}
                         </button>
@@ -264,74 +273,77 @@ const MapPage = () => {
             {/* Back button */}
             <button
                 onClick={() => setStep("input")}
-                className="absolute top-4 left-4 z-[1001] bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 transition"
+                className="absolute top-4 left-4 z-[1001] bg-[#111]/90 backdrop-blur-sm hover:bg-[#1a1a1a] text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all border border-gray-800 hover:border-gray-700 text-sm font-medium"
             >
-                <FaArrowLeft />
+                <FaArrowLeft className="text-xs" />
                 <span>Change Location</span>
             </button>
 
             {/* Info panel */}
-            <div className="absolute top-16 left-4 z-[1000] bg-white rounded-lg shadow-lg p-4 max-w-xs">
-                <h3 className="font-bold text-gray-800 mb-2">Nearby Connections</h3>
-                <p className="text-sm text-gray-600">
-                    {nearbyConnections.length} connection{nearbyConnections.length !== 1 ? "s" : ""} within 50km
+            <div className="absolute top-16 left-4 z-[1000] bg-[#111]/90 backdrop-blur-sm rounded-xl shadow-lg p-3.5 md:p-4 max-w-[200px] md:max-w-xs border border-gray-800">
+                <h3 className="font-bold text-white mb-1 text-sm md:text-base">Nearby Connections</h3>
+                <p className="text-xs md:text-sm text-gray-400">
+                    <span className="text-[#C5B239] font-bold">{nearbyConnections.length}</span> connection{nearbyConnections.length !== 1 ? "s" : ""} within 50km
                 </p>
             </div>
 
-            {/* Selected user details */}
+            {/* Selected user details - Bottom Sheet on Mobile, Top Right on Desktop */}
             {selectedUser && (
-                <div className="absolute top-4 right-4 z-[1000] bg-white rounded-lg shadow-lg p-4 max-w-sm">
+                <div className="absolute bottom-0 left-0 w-full md:top-4 md:right-4 md:bottom-auto md:left-auto md:w-auto z-[1000] bg-[#111]/95 backdrop-blur-sm rounded-t-2xl md:rounded-2xl shadow-2xl p-5 md:p-5 max-w-full md:max-w-sm animate-slide-up border border-gray-800 md:border">
                     <button
                         onClick={() => setSelectedUser(null)}
-                        className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                        className="absolute top-3 right-4 md:top-3 md:right-3 text-gray-500 hover:text-white bg-gray-800/50 rounded-full p-1.5 transition-colors"
                     >
-                        ✕
+                        <X size={16} />
                     </button>
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-3 mb-4">
                         {selectedUser.profile_image ? (
                             <img
                                 src={selectedUser.profile_image}
                                 alt={selectedUser.name}
-                                className="w-16 h-16 rounded-full object-cover"
+                                className="w-14 h-14 md:w-16 md:h-16 rounded-full object-cover ring-2 ring-gray-700"
                             />
                         ) : (
-                            <div className="w-16 h-16 rounded-full bg-[#C5B239] flex items-center justify-center text-white text-2xl font-bold">
+                            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br from-[#C5B239] to-[#a89628] flex items-center justify-center text-black text-xl md:text-2xl font-bold ring-2 ring-[#C5B239]/30">
                                 {selectedUser.name.charAt(0)}
                             </div>
                         )}
                         <div>
-                            <h3 className="font-bold text-gray-800">{selectedUser.name}</h3>
-                            <p className="text-sm text-gray-600">{selectedUser.role}</p>
+                            <h3 className="font-bold text-white text-lg">{selectedUser.name}</h3>
+                            <p className="text-xs text-[#C5B239] font-bold uppercase tracking-wider">{selectedUser.role}</p>
                         </div>
                     </div>
 
-                    {selectedUser.current_position && (
-                        <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
-                            <FaBriefcase className="text-[#C5B239]" />
-                            <span>{selectedUser.current_position}</span>
-                        </div>
-                    )}
+                    <div className="max-h-[40vh] overflow-y-auto pr-2 space-y-2">
+                        {selectedUser.current_position && (
+                            <div className="flex items-center gap-2.5 text-sm text-gray-300 bg-gray-900/50 px-3.5 py-2.5 rounded-xl border border-gray-800">
+                                <FaBriefcase className="text-[#C5B239] flex-shrink-0 text-xs" />
+                                <span>{selectedUser.current_position}</span>
+                            </div>
+                        )}
 
-                    {selectedUser.current_company && (
-                        <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
-                            <FaBriefcase className="text-[#C5B239]" />
-                            <span>{selectedUser.current_company}</span>
-                        </div>
-                    )}
+                        {selectedUser.current_company && (
+                            <div className="flex items-center gap-2.5 text-sm text-gray-300 bg-gray-900/50 px-3.5 py-2.5 rounded-xl border border-gray-800">
+                                <FaBriefcase className="text-[#C5B239] flex-shrink-0 text-xs" />
+                                <span>{selectedUser.current_company}</span>
+                            </div>
+                        )}
 
-                    {selectedUser.college && (
-                        <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
-                            <FaGraduationCap className="text-[#C5B239]" />
-                            <span>{selectedUser.college}</span>
-                        </div>
-                    )}
+                        {selectedUser.college && (
+                            <div className="flex items-center gap-2.5 text-sm text-gray-300 bg-gray-900/50 px-3.5 py-2.5 rounded-xl border border-gray-800">
+                                <FaGraduationCap className="text-[#C5B239] flex-shrink-0 text-xs" />
+                                <span>{selectedUser.college}</span>
+                            </div>
+                        )}
 
-                    {selectedUser.bio && (
-                        <p className="text-sm text-gray-600 mt-3">{selectedUser.bio}</p>
-                    )}
+                        {selectedUser.bio && (
+                            <p className="text-sm text-gray-400 mt-2 leading-relaxed">{selectedUser.bio}</p>
+                        )}
+                    </div>
 
-                    <div className="text-xs text-gray-500 mt-3">
-                        Distance: {selectedUser.distance_km?.toFixed(2)} km away
+                    <div className="text-xs text-gray-500 mt-4 pt-3 border-t border-gray-800 flex items-center gap-2">
+                        <FaMapMarkerAlt className="text-[#C5B239] text-[10px]" />
+                        {selectedUser.distance_km?.toFixed(2)} km away
                     </div>
                 </div>
             )}
@@ -347,7 +359,6 @@ const MapPage = () => {
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a>'
                 />
-
                 <ZoomControl position="bottomleft" />
 
                 {/* User location marker */}
@@ -401,10 +412,13 @@ const MapPage = () => {
         <div className="flex flex-col h-screen">
             <Navbar />
 
-            <div className="pt-20 flex-1 p-4 bg-[#1a1a1a] overflow-auto">
+            <div className="pt-20 flex-1 p-4 bg-[#0a0a0a] overflow-auto">
                 {step === "check" && (
                     <div className="flex items-center justify-center h-full">
-                        <div className="text-white text-xl">Checking your location...</div>
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#C5B239]"></div>
+                            <p className="text-gray-400 font-medium">Checking your location...</p>
+                        </div>
                     </div>
                 )}
 

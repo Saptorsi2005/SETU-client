@@ -56,7 +56,7 @@ const Apply = () => {
   return (
     <div>
       <Navbar />
-      <div className="pt-24 min-h-screen bg-[#0d0d0d] text-white flex justify-center px-4">
+      <div className="pt-28 pb-8 min-h-screen bg-[#0d0d0d] text-white flex justify-center px-4">
         <div className="bg-[#1a1a1a] p-8 rounded-xl shadow-lg w-full max-w-2xl relative">
           {/* Back Button */}
           <button

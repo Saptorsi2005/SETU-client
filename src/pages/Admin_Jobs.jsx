@@ -143,7 +143,7 @@ const Admin_Jobs = () => {
 
     try {
       const response = await jobsAPI.deleteJob(jobId);
-      
+
       if (response.success) {
         // Remove job from local state
         setJobs((prev) => prev.filter((job) => job.job_id !== jobId));
@@ -160,31 +160,34 @@ const Admin_Jobs = () => {
     <div>
       <Navbar />
 
-      <div className="pt-24 min-h-screen bg-[#0d0d0d] text-white p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <div className="min-h-screen bg-[#0a0a0a] text-white px-6 py-10 md:px-10 pt-32 md:pt-20">
+        <div className="max-w-6xl mx-auto space-y-10">
 
           {/* Page Header */}
-          <div>
-            <h2 className="text-2xl font-semibold text-[#C5B239]">
-              Job Management
-            </h2>
-            <p className="text-gray-400 text-sm">
-              Approve job requests or add new job postings
+          <header className="mb-10">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="h-1 w-10 bg-gradient-to-r from-[#C5B239] to-purple-500 rounded-full"></div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                JOB <span className="font-light text-gray-400">MANAGEMENT</span>
+              </h1>
+            </div>
+            <p className="text-gray-500 text-sm pl-14 tracking-wide uppercase font-medium">
+              Oversee board opportunities and pending requests
             </p>
-          </div>
+          </header>
 
           {/* Tabs */}
-          <div className="flex gap-6 border-b border-gray-700 pb-3">
+          <div className="flex gap-1 bg-black/40 p-1 rounded-2xl border border-gray-800 w-fit">
             {["approve", "add"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-md font-medium ${activeTab === tab
-                    ? "bg-[#C5B239] text-black"
-                    : "text-gray-400 hover:text-[#C5B239]"
+                className={`px-6 py-2.5 text-sm rounded-xl font-bold uppercase tracking-wider transition-all duration-300 ${activeTab === tab
+                  ? "bg-gradient-to-r from-[#C5B239] to-[#a89628] text-black shadow-lg shadow-[#C5B239]/10"
+                  : "text-gray-500 hover:text-gray-300 hover:bg-gray-900/50"
                   }`}
               >
-                {tab === "approve" ? "Approve Jobs" : "Add Jobs"}
+                {tab === "approve" ? "Pending Requests" : "Live Board"}
               </button>
             ))}
           </div>
@@ -192,162 +195,169 @@ const Admin_Jobs = () => {
           {/* ================= APPROVE JOBS ================= */}
           {activeTab === "approve" && (
             <>
-              <h3 className="text-xl font-semibold">Pending Job Requests</h3>
-              <p className="text-gray-400 text-sm">
-                Review and approve alumni-submitted job postings
-              </p>
-
-              {loading ? (
-                <p className="text-gray-400 mt-6">Loading...</p>
-              ) : requests.length === 0 ? (
-                <p className="text-gray-400 mt-6">
-                  No pending job requests
-                </p>
-              ) : (
-                <div className="mt-6 overflow-hidden rounded-xl bg-gray-900 border border-gray-800">
-                  <table className="w-full">
-                    <thead className="bg-gray-800/60">
-                      <tr>
-                        <th className="px-4 py-3 text-left">Job Title</th>
-                        <th className="px-4 py-3 text-left">Company</th>
-                        <th className="px-4 py-3 text-left">Location</th>
-                        <th className="px-4 py-3 text-left">Submitted By</th>
-                        <th className="px-4 py-3 text-left">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {requests.map((req) => (
-                        <tr
-                          key={req.request_id}
-                          className="border-t border-gray-800"
-                        >
-                          <td className="px-4 py-3">{req.job_title}</td>
-                          <td className="px-4 py-3">{req.company}</td>
-                          <td className="px-4 py-3">
-                            {req.location || "—"}
-                          </td>
-                          <td className="px-4 py-3">
-                            {req.alumni_email}
-                          </td>
-                          <td className="px-4 py-3 flex gap-2">
-                            <button
-                              onClick={() =>
-                                approveRequest(req.request_id)
-                              }
-                              className="bg-emerald-500 px-3 py-1 rounded text-black text-sm"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() =>
-                                setRejectModal({
-                                  open: true,
-                                  id: req.request_id,
-                                })
-                              }
-                              className="bg-red-500 px-3 py-1 rounded text-black text-sm"
-                            >
-                              Reject
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+                  <h3 className="text-lg font-bold text-white uppercase tracking-widest">Awaiting Verification</h3>
                 </div>
-              )}
+
+                {loading ? (
+                  <div className="flex flex-col items-center py-12 bg-gray-900/20 rounded-2xl border border-gray-800">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5B239]"></div>
+                    <p className="mt-4 text-gray-500 font-bold text-xs uppercase tracking-widest">Loading requests...</p>
+                  </div>
+                ) : requests.length === 0 ? (
+                  <div className="text-center py-16 bg-gray-900/10 rounded-2xl border border-gray-800/50">
+                    <p className="text-gray-600 font-bold uppercase tracking-widest text-sm">Dashboard is clear • No pending jobs</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto rounded-2xl border border-gray-800 shadow-2xl bg-[#111]">
+                    <table className="w-full text-sm">
+                      <thead className="bg-[#1a1a1a] text-gray-400 uppercase text-[10px] tracking-widest font-bold">
+                        <tr className="border-b border-gray-800">
+                          <th className="px-6 py-5 text-left">Opportunity Title</th>
+                          <th className="px-6 py-5 text-left">Organization</th>
+                          <th className="px-6 py-5 text-left">Location</th>
+                          <th className="px-6 py-5 text-left">Submitted By</th>
+                          <th className="px-6 py-5 text-center">Process</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-800/50">
+                        {requests.map((req) => (
+                          <tr
+                            key={req.request_id}
+                            className="hover:bg-gray-900/40 transition-colors duration-200 group"
+                          >
+                            <td className="px-6 py-4 font-bold text-gray-300 group-hover:text-[#C5B239]">{req.job_title}</td>
+                            <td className="px-6 py-4 text-gray-400">{req.company}</td>
+                            <td className="px-6 py-4">
+                              <span className="text-gray-500 font-medium">
+                                {req.location || "Remote / Global"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="text-gray-400 italic text-xs break-all">{req.alumni_email}</span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center justify-center gap-3">
+                                <button
+                                  onClick={() =>
+                                    approveRequest(req.request_id)
+                                  }
+                                  className="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-black px-4 py-1.5 rounded-lg border border-emerald-500/20 transition-all font-bold text-[10px] uppercase tracking-wider"
+                                >
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setRejectModal({
+                                      open: true,
+                                      id: req.request_id,
+                                    })
+                                  }
+                                  className="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-black px-4 py-1.5 rounded-lg border border-red-500/20 transition-all font-bold text-[10px] uppercase tracking-wider"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </>
           )}
 
           {/* ================= ADD JOBS ================= */}
           {activeTab === "add" && (
             <>
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-semibold text-[#C5B239]">
-                    Job Openings
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    Jobs visible to students and alumni
-                  </p>
+              <div className="flex justify-between items-end mb-8 border-b border-gray-800 pb-8">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <div className="h-2 w-2 rounded-full bg-[#C5B239]"></div>
+                    <h3 className="text-lg font-bold text-white uppercase tracking-widest">Active Postings</h3>
+                  </div>
+                  <p className="text-gray-500 text-xs font-medium pl-5 tracking-wide">Visible to students and verified alumni</p>
                 </div>
 
                 {(user?.role === "admin" || user?.role === "alumni") && (
                   <button
                     onClick={() => setShowAddJobModal(true)}
-                    className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm"
+                    className="bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black px-6 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg flex items-center gap-2"
                   >
-                    {user.role === "admin"
-                      ? "Create Job"
-                      : "Request Job Posting"}
+                    <FaBriefcase className="text-xs" />
+                    {user.role === "admin" ? "New Opportunity" : "Request Posting"}
                   </button>
                 )}
               </div>
 
               {loadingJobs ? (
-                <div className="text-center text-gray-400 py-8">
-                  Loading jobs...
+                <div className="flex flex-col items-center py-20 bg-gray-900/10 rounded-2xl border border-gray-800/50">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                  <p className="mt-4 text-gray-600 font-bold text-[10px] uppercase tracking-[0.2em]">Synchronizing board...</p>
                 </div>
               ) : jobs.length === 0 ? (
-                <div className="text-center text-gray-400 py-8">
-                  No jobs available at the moment.
+                <div className="text-center py-20 bg-[#111] rounded-2xl border border-gray-800 border-dashed">
+                  <p className="text-gray-600 font-bold uppercase tracking-widest text-sm">Opportunity board is currently empty</p>
                 </div>
               ) : (
-                jobs.map((job) => (
-                  <div
-                    key={job.job_id}
-                    className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3"
-                  >
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-lg text-[#C5B239] flex items-center gap-2">
-                        <FaBriefcase />
-                        {job.title}
-                      </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {jobs.map((job) => (
+                    <div
+                      key={job.job_id}
+                      className="bg-[#111] border border-gray-800 p-7 rounded-2xl shadow-xl hover:border-[#C5B239]/30 transition-all duration-300 group flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="flex justify-between items-start mb-5">
+                          <div className="bg-gray-900/50 p-3 rounded-xl border border-gray-800 group-hover:border-[#C5B239]/20 transition-colors">
+                            <FaBriefcase className="text-[#C5B239] text-xl" />
+                          </div>
+                          {user?.role === "admin" && (
+                            <button
+                              onClick={() => handleDeleteJob(job.job_id)}
+                              className="text-gray-600 hover:text-red-400 bg-black/40 p-2 rounded-lg border border-transparent hover:border-red-500/20 transition-all"
+                            >
+                              <FaTrash className="text-sm" />
+                            </button>
+                          )}
+                        </div>
 
-                      {/* Delete button for admin */}
-                      {user?.role === "admin" && (
-                        <button
-                          onClick={() => handleDeleteJob(job.job_id)}
-                          className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
-                          title="Delete job"
-                        >
-                          <FaTrash className="text-sm" />
-                        </button>
-                      )}
-                    </div>
+                        <h3 className="font-bold text-xl text-white group-hover:text-[#C5B239] transition-colors mb-3 tracking-tight">
+                          {job.title}
+                        </h3>
 
-                    <div className="flex flex-wrap gap-3 text-sm text-gray-400">
-                      <span className="flex items-center gap-1">
-                        <FaBuilding />
-                        {job.company}
-                      </span>
-                      {job.location && (
-                        <span className="flex items-center gap-1">
-                          <FaMapMarkerAlt />
-                          {job.location}
+                        <div className="space-y-2.5 mb-6">
+                          <div className="flex items-center gap-2.5 text-gray-400">
+                            <FaBuilding className="text-[#C5B239] text-xs opacity-70" />
+                            <span className="text-sm font-medium">{job.company}</span>
+                          </div>
+                          <div className="flex items-center gap-2.5 text-gray-400">
+                            <FaMapMarkerAlt className="text-[#C5B239] text-xs opacity-70" />
+                            <span className="text-sm font-medium">{job.location || "Remote"}</span>
+                          </div>
+                        </div>
+
+                        <div className="bg-black/30 p-4 rounded-xl border border-gray-800/50 mb-6">
+                          <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">
+                            {job.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-gray-800 mt-auto flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-widest text-gray-600">
+                          By: <span className="text-gray-400"> {job.posted_by_role === "admin" ? "App Admin" : "Verified Alumni"}</span>
+                        </div>
+                        <span className="bg-[#C5B239]/10 text-[#C5B239] px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest border border-[#C5B239]/20">
+                          Full Time
                         </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <FaUserTie />
-                        Posted by:{" "}
-                        {job.posted_by_role === "admin"
-                          ? "Admin"
-                          : "Alumni"}
-                      </span>
+                      </div>
                     </div>
-
-                    <p className="text-gray-300 text-sm">
-                      {job.description}
-                    </p>
-
-                    {job.requirements && (
-                      <p className="text-gray-400 text-sm">
-                        <strong>Requirements:</strong>{" "}
-                        {job.requirements}
-                      </p>
-                    )}
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
             </>
           )}
@@ -356,31 +366,32 @@ const Admin_Jobs = () => {
 
       {/* ================= REJECT MODAL ================= */}
       {rejectModal.open && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 w-[420px]">
-            <h3 className="text-lg font-semibold mb-2">
-              Reject Job Request
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-gray-800 rounded-3xl p-8 w-full max-w-[420px] shadow-2xl relative animate-slide-up">
+            <h3 className="text-2xl font-bold text-white tracking-tight mb-2">
+              Reject Request
             </h3>
+            <p className="text-gray-500 text-sm mb-6 uppercase tracking-wider font-bold text-[10px]">Provide logic for denial</p>
 
             <textarea
-              className="w-full h-24 mt-2 p-3 rounded-lg bg-gray-800 border border-gray-700"
-              placeholder="Optional rejection reason"
+              className="w-full h-32 p-4 rounded-2xl bg-black border border-gray-800 text-gray-300 placeholder-gray-700 outline-none focus:border-red-500/50 transition-all resize-none font-medium text-sm"
+              placeholder="Rejection context..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
 
-            <div className="flex justify-end gap-3 mt-4">
+            <div className="flex flex-col gap-3 mt-8">
               <button
                 onClick={rejectRequest}
-                className="bg-red-500 px-4 py-1.5 rounded-lg text-black"
+                className="bg-red-500 hover:bg-red-600 text-black py-3.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all"
               >
-                Confirm Reject
+                Confirm Rejection
               </button>
               <button
                 onClick={() =>
                   setRejectModal({ open: false, id: null })
                 }
-                className="bg-gray-700 px-4 py-1.5 rounded-lg"
+                className="bg-gray-900/50 hover:bg-gray-800 text-gray-400 py-3.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all"
               >
                 Cancel
               </button>
@@ -391,99 +402,119 @@ const Admin_Jobs = () => {
 
       {/* ================= ADD JOB MODAL ================= */}
       {showAddJobModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#1a1a1a] p-8 rounded-xl w-full max-w-lg relative">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-gray-800 p-8 md:p-10 rounded-3xl w-full max-w-2xl relative max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl animate-slide-up">
             <button
               onClick={() => setShowAddJobModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              className="absolute top-6 right-6 text-gray-500 hover:text-white bg-gray-900/50 p-2 rounded-full transition-colors"
             >
               <FaTimes />
             </button>
 
-            <h2 className="text-2xl font-semibold mb-6">
-              {user?.role === "admin"
-                ? "Create Job"
-                : "Request Job Posting"}
-            </h2>
+            <header className="mb-10 text-center md:text-left">
+              <h2 className="text-3xl font-bold text-white tracking-tight mb-2">
+                {user?.role === "admin"
+                  ? "Broadcast Opportunity"
+                  : "Request Job Listing"}
+              </h2>
+              <p className="text-gray-500 text-sm font-medium uppercase tracking-widest">
+                Define the requirements and description
+              </p>
+            </header>
 
-            <form onSubmit={handleAddJob} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Job Title *"
-                value={jobFormData.title}
-                onChange={(e) =>
-                  setJobFormData({
-                    ...jobFormData,
-                    title: e.target.value,
-                  })
-                }
-                className="w-full bg-[#111] text-white placeholder-gray-400 p-3 rounded-md outline-none"
-              />
+            <form onSubmit={handleAddJob} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Job Title*</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Senior Frontend Engineer"
+                    value={jobFormData.title}
+                    onChange={(e) =>
+                      setJobFormData({
+                        ...jobFormData,
+                        title: e.target.value,
+                      })
+                    }
+                    className="w-full bg-black/40 text-white placeholder-gray-700 p-4 rounded-xl border border-gray-800 outline-none focus:border-[#C5B239]/50 transition-all font-medium"
+                  />
+                </div>
 
-              <input
-                type="text"
-                placeholder="Company Name *"
-                value={jobFormData.company}
-                onChange={(e) =>
-                  setJobFormData({
-                    ...jobFormData,
-                    company: e.target.value,
-                  })
-                }
-                className="w-full bg-[#111] text-white placeholder-gray-400 p-3 rounded-md outline-none"
-              />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Organization*</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Google Cloud"
+                    value={jobFormData.company}
+                    onChange={(e) =>
+                      setJobFormData({
+                        ...jobFormData,
+                        company: e.target.value,
+                      })
+                    }
+                    className="w-full bg-black/40 text-white placeholder-gray-700 p-4 rounded-xl border border-gray-800 outline-none focus:border-[#C5B239]/50 transition-all font-medium"
+                  />
+                </div>
+              </div>
 
-              <input
-                type="text"
-                placeholder="Location"
-                value={jobFormData.location}
-                onChange={(e) =>
-                  setJobFormData({
-                    ...jobFormData,
-                    location: e.target.value,
-                  })
-                }
-                className="w-full bg-[#111] text-white placeholder-gray-400 p-3 rounded-md outline-none"
-              />
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Physical Location</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Bengaluru, India (or Remote)"
+                  value={jobFormData.location}
+                  onChange={(e) =>
+                    setJobFormData({
+                      ...jobFormData,
+                      location: e.target.value,
+                    })
+                  }
+                  className="w-full bg-black/40 text-white placeholder-gray-700 p-4 rounded-xl border border-gray-800 outline-none focus:border-[#C5B239]/50 transition-all font-medium"
+                />
+              </div>
 
-              <textarea
-                placeholder="Job Description *"
-                value={jobFormData.description}
-                onChange={(e) =>
-                  setJobFormData({
-                    ...jobFormData,
-                    description: e.target.value,
-                  })
-                }
-                className="w-full bg-[#111] text-white placeholder-gray-400 p-3 rounded-md outline-none resize-none"
-                rows={4}
-              />
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Opportunity Scope*</label>
+                <textarea
+                  placeholder="Summarize the role and impact..."
+                  value={jobFormData.description}
+                  onChange={(e) =>
+                    setJobFormData({
+                      ...jobFormData,
+                      description: e.target.value,
+                    })
+                  }
+                  className="w-full bg-black/40 text-white placeholder-gray-700 p-4 rounded-xl border border-gray-800 outline-none focus:border-[#C5B239]/50 transition-all font-medium h-32 resize-none"
+                />
+              </div>
 
-              <textarea
-                placeholder="Requirements (Optional)"
-                value={jobFormData.requirements}
-                onChange={(e) =>
-                  setJobFormData({
-                    ...jobFormData,
-                    requirements: e.target.value,
-                  })
-                }
-                className="w-full bg-[#111] text-white placeholder-gray-400 p-3 rounded-md outline-none resize-none"
-                rows={3}
-              />
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Technical Requirements</label>
+                <textarea
+                  placeholder="Skills, stack, years of experience..."
+                  value={jobFormData.requirements}
+                  onChange={(e) =>
+                    setJobFormData({
+                      ...jobFormData,
+                      requirements: e.target.value,
+                    })
+                  }
+                  className="w-full bg-black/40 text-white placeholder-gray-700 p-4 rounded-xl border border-gray-800 outline-none focus:border-[#C5B239]/50 transition-all font-medium h-24 resize-none"
+                />
+              </div>
 
               <button
                 type="submit"
-                className="w-full bg-[#C5B239] hover:bg-[#b9a531] py-3 rounded-md text-black font-semibold"
+                className="w-full bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] py-4 rounded-2xl text-black font-bold uppercase tracking-widest shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99]"
               >
                 {user?.role === "admin"
-                  ? "Create Job"
-                  : "Submit Request"}
+                  ? "Publish opportunity"
+                  : "Submit for approval"}
               </button>
 
               {user?.role === "alumni" && (
-                <p className="text-gray-400 text-sm text-center">
-                  Your job posting will be visible after admin approval.
+                <p className="text-gray-500 text-[10px] text-center uppercase font-bold tracking-[0.15em]">
+                  Listing will undergo moderator review before appearing live
                 </p>
               )}
             </form>

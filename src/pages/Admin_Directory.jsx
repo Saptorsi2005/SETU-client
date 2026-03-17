@@ -205,15 +205,18 @@ const Admin_Directory = () => {
   const filteredData = alumniData;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8 relative">
+    <div className="min-h-screen bg-[#0a0a0a] text-white p-8 relative">
       <Navbar />
       {/* Header */}
-      <header className="pt-20 mb-8">
-        <h1 className="text-3xl font-bold">
-          ANALYTICS <span className="block font-light">DIRECTORY</span>
-        </h1>
-        <p className="text-gray-400 text-sm mt-1">
-          manage and track your alumni here
+      <header className="pt-10 mb-10">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="h-1 w-10 bg-gradient-to-r from-[#C5B239] to-purple-500 rounded-full"></div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            ANALYTICS <span className="font-light text-gray-400">DIRECTORY</span>
+          </h1>
+        </div>
+        <p className="text-gray-500 text-sm pl-14 tracking-wide uppercase font-medium">
+          Manage and track your alumni network
         </p>
       </header>
 
@@ -225,106 +228,117 @@ const Admin_Directory = () => {
       )}
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-4 mb-8">
+      <div className="flex flex-wrap gap-4 mb-10">
         <button
           onClick={handleExportExcel}
-          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-xl border border-gray-700 transition"
+          className="flex items-center gap-2.5 bg-gray-900/50 hover:bg-[#C5B239]/10 text-gray-300 hover:text-white px-6 py-2.5 rounded-xl border border-gray-800 hover:border-[#C5B239]/40 transition-all duration-300 shadow-lg"
         >
-          <FileSpreadsheet size={18} /> Export Excel
+          <FileSpreadsheet size={18} className="text-[#C5B239]" /> <span className="text-sm font-bold">Export Excel</span>
         </button>
         <button
           onClick={handleExportCSV}
-          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-xl border border-gray-700 transition"
+          className="flex items-center gap-2.5 bg-gray-900/50 hover:bg-[#C5B239]/10 text-gray-300 hover:text-white px-6 py-2.5 rounded-xl border border-gray-800 hover:border-[#C5B239]/40 transition-all duration-300 shadow-lg"
         >
-          <FileText size={18} /> Export CSV
+          <FileText size={18} className="text-[#C5B239]" /> <span className="text-sm font-bold">Export CSV</span>
         </button>
         <button
           onClick={handleExportPDF}
-          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-xl border border-gray-700 transition"
+          className="flex items-center gap-2.5 bg-gray-900/50 hover:bg-[#C5B239]/10 text-gray-300 hover:text-white px-6 py-2.5 rounded-xl border border-gray-800 hover:border-[#C5B239]/40 transition-all duration-300 shadow-lg"
         >
-          <FileDown size={18} /> Export PDF
+          <FileDown size={18} className="text-[#C5B239]" /> <span className="text-sm font-bold">Export PDF</span>
         </button>
         <button
           onClick={() => setShowImportModal(true)}
-          className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-5 py-2 rounded-xl border border-gray-700 transition"
+          className="flex items-center gap-2.5 bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black px-6 py-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg"
         >
-          <Upload size={18} /> Upload CSV
+          <Upload size={18} className="stroke-[2.5px]" /> <span className="text-sm font-bold uppercase tracking-wider">Upload CSV</span>
         </button>
       </div>
 
       {/* Search & Filter */}
-      <div className="flex flex-wrap gap-4 mb-6 items-center">
-        <div className="relative">
+      <div className="flex flex-wrap gap-5 mb-8 items-center bg-[#111] p-5 rounded-2xl border border-gray-800 shadow-xl">
+        <div className="relative flex-grow max-w-md">
           <input
             type="text"
-            placeholder="Search name or email"
-            className="bg-gray-800 text-white placeholder-gray-500 pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Search name or email..."
+            className="w-full bg-black/40 text-white placeholder-gray-600 pl-11 pr-4 py-3 rounded-xl border border-gray-800 focus:outline-none focus:border-[#C5B239]/50 transition-all font-medium"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <Search className="absolute left-4 top-3.5 text-gray-500" size={18} />
         </div>
 
-        <div className="flex items-center bg-gray-800 px-4 py-2 rounded-xl border border-gray-700">
-          <Filter size={18} className="mr-2 text-gray-400" />
+        <div className="flex items-center bg-black/40 px-4 py-3 rounded-xl border border-gray-800 focus-within:border-[#C5B239]/50 transition-all min-w-[240px]">
+          <Filter size={18} className="mr-3 text-[#C5B239]" />
           <select
-            className="bg-gray-800 text-white focus:outline-none"
+            className="bg-transparent text-gray-300 focus:outline-none w-full cursor-pointer text-sm font-medium"
             value={filterDept}
             onChange={(e) => setFilterDept(e.target.value)}
           >
             {departments.map((dept, i) => (
-              <option key={i} value={dept}>
+              <option key={i} value={dept} className="bg-gray-900">
                 {dept}
               </option>
             ))}
           </select>
         </div>
+
+        <div className="text-gray-500 text-xs font-bold uppercase tracking-widest ml-auto px-4 border-l border-gray-800">
+          Total: <span className="text-[#C5B239]">{pagination.total}</span>
+        </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-gray-700">
+      <div className="overflow-x-auto rounded-2xl border border-gray-800 shadow-2xl bg-[#111]">
         <table className="w-full text-sm">
-          <thead className="bg-gray-800 text-gray-300 uppercase text-xs tracking-wider">
-            <tr>
-              <th className="px-6 py-3 text-left">Name</th>
-              <th className="px-6 py-3 text-left">Email</th>
-              <th className="px-6 py-3 text-left">Role</th>
-              <th className="px-6 py-3 text-left">Department</th>
-              <th className="px-6 py-3 text-left">Year</th>
+          <thead className="bg-[#1a1a1a] text-gray-400 uppercase text-[10px] tracking-[0.15em] font-bold">
+            <tr className="border-b border-gray-800">
+              <th className="px-6 py-5 text-left">Full Name</th>
+              <th className="px-6 py-5 text-left">Email Address</th>
+              <th className="px-6 py-5 text-left">Access Level</th>
+              <th className="px-6 py-5 text-left">Department</th>
+              <th className="px-6 py-5 text-left text-center">Batch Year</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
+          <tbody className="divide-y divide-gray-800/50">
             {loading ? (
               <tr>
-                <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
-                  Loading directory...
+                <td colSpan="5" className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#C5B239]"></div>
+                    <p className="text-gray-500 font-medium">Loading directory...</p>
+                  </div>
                 </td>
               </tr>
             ) : filteredData.length === 0 ? (
               <tr>
-                <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
-                  No users found.
+                <td colSpan="5" className="px-6 py-12 text-center text-gray-500 italic font-medium">
+                  No users match your criteria.
                 </td>
               </tr>
             ) : (
               filteredData.map((row, i) => (
                 <tr
                   key={i}
-                  className="hover:bg-gray-800 transition duration-150 cursor-pointer"
+                  className="hover:bg-gray-900/40 transition-colors duration-200 cursor-pointer group"
                   onClick={() => setSelectedProfile(row)}
                 >
-                  <td className="px-6 py-3">{row.name}</td>
-                  <td className="px-6 py-3">{row.email}</td>
-                  <td className="px-6 py-3">
-                    <span className={`px-2 py-1 rounded text-xs ${row.role === 'alumni'
-                      ? 'bg-indigo-900/50 text-indigo-300'
-                      : 'bg-green-900/50 text-green-300'
+                  <td className="px-6 py-4 font-bold text-gray-300 group-hover:text-[#C5B239] transition-colors">{row.name}</td>
+                  <td className="px-6 py-4 text-gray-400 group-hover:text-gray-300">{row.email}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${row.role === 'alumni'
+                      ? 'bg-purple-900/20 text-purple-400 border-purple-500/20'
+                      : 'bg-green-900/20 text-green-400 border-green-500/20'
                       }`}>
                       {row.role}
                     </span>
                   </td>
-                  <td className="px-6 py-3">{row.department || 'N/A'}</td>
-                  <td className="px-6 py-3">{row.year || 'N/A'}</td>
+                  <td className="px-6 py-4 text-gray-400">{row.department || 'N/A'}</td>
+                  <td className="px-6 py-4 text-center">
+                    <span className="bg-gray-900/50 px-3 py-1 rounded-lg border border-gray-800 text-xs font-bold text-[#C5B239]">
+                      {row.year || 'N/A'}
+                    </span>
+                  </td>
                 </tr>
               ))
             )}
@@ -334,127 +348,149 @@ const Admin_Directory = () => {
 
       {/* Profile Modal */}
       {selectedProfile && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-lg shadow-xl relative">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-gray-800 rounded-3xl p-8 w-full max-w-xl shadow-2xl relative animate-slide-up">
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              className="absolute top-5 right-5 text-gray-500 hover:text-white transition-colors bg-gray-900/50 p-2 rounded-full"
               onClick={() => setSelectedProfile(null)}
             >
               <X size={20} />
             </button>
 
-            <h2 className="text-2xl font-semibold mb-2">
-              {selectedProfile.name}
-            </h2>
-            <p className="text-gray-400 mb-4">{selectedProfile.email}</p>
-
-            <div className="space-y-3 text-sm">
-              {selectedProfile.skills && selectedProfile.skills.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-indigo-400">Skills:</h3>
-                  <p>{selectedProfile.skills.join(", ")}</p>
+            <div className="flex items-center gap-5 mb-8">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#C5B239] to-[#a89628] flex items-center justify-center text-black text-3xl font-bold font-serif shadow-lg">
+                {selectedProfile.name.charAt(0)}
+              </div>
+              <div className="space-y-1">
+                <h2 className="text-3xl font-bold text-white tracking-tight">
+                  {selectedProfile.name}
+                </h2>
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${selectedProfile.role === 'alumni'
+                    ? 'bg-purple-900/20 text-purple-400 border-purple-500/20'
+                    : 'bg-green-900/20 text-green-400 border-green-500/20'
+                    }`}>
+                    {selectedProfile.role}
+                  </span>
+                  <span className="text-gray-500 text-xs font-bold">•</span>
+                  <p className="text-[#C5B239] font-bold text-xs uppercase tracking-widest">
+                    {selectedProfile.department || 'N/A'}
+                  </p>
                 </div>
-              )}
+                <p className="text-gray-500 text-sm font-medium">{selectedProfile.email}</p>
+              </div>
+            </div>
 
-              {selectedProfile.projects && selectedProfile.projects.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-indigo-400">Projects:</h3>
-                  <ul className="list-disc ml-5">
-                    {selectedProfile.projects.map((proj, i) => (
-                      <li key={i}>{proj}</li>
-                    ))}
-                  </ul>
+            <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-4 custom-scrollbar bg-black/20 p-4 rounded-2xl border border-gray-800/30">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-900/50 p-4 rounded-2xl border border-gray-800">
+                  <h3 className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-[#C5B239] rounded-full"></span>
+                    Batch Year
+                  </h3>
+                  <p className="text-gray-300 font-bold">{selectedProfile.year || 'N/A'}</p>
                 </div>
-              )}
 
-              {selectedProfile.education && (
-                <div>
-                  <h3 className="font-semibold text-indigo-400">Education:</h3>
-                  <p>{selectedProfile.education}</p>
-                </div>
-              )}
-
-              {selectedProfile.experience && (
-                <div>
-                  <h3 className="font-semibold text-indigo-400">Experience:</h3>
-                  <p>{selectedProfile.experience}</p>
-                </div>
-              )}
+                {selectedProfile.location && (
+                  <div className="bg-gray-900/50 p-4 rounded-2xl border border-gray-800">
+                    <h3 className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-[#C5B239] rounded-full"></span>
+                      Location
+                    </h3>
+                    <p className="text-gray-300 font-bold">{selectedProfile.location}</p>
+                  </div>
+                )}
+              </div>
 
               {selectedProfile.current_company && (
-                <div>
-                  <h3 className="font-semibold text-indigo-400">Current Company:</h3>
-                  <p>{selectedProfile.current_company}</p>
-                </div>
-              )}
-
-              {selectedProfile.current_position && (
-                <div>
-                  <h3 className="font-semibold text-indigo-400">Current Position:</h3>
-                  <p>{selectedProfile.current_position}</p>
-                </div>
-              )}
-
-              {selectedProfile.location && (
-                <div>
-                  <h3 className="font-semibold text-indigo-400">Location:</h3>
-                  <p>{selectedProfile.location}</p>
+                <div className="bg-gray-900/50 p-5 rounded-2xl border border-gray-800">
+                  <h3 className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-[#C5B239] rounded-full"></span>
+                    Professional Status
+                  </h3>
+                  <p className="text-gray-200 font-bold text-lg">{selectedProfile.current_position || 'Member'}</p>
+                  <p className="text-[#C5B239] font-medium text-sm">at {selectedProfile.current_company}</p>
                 </div>
               )}
 
               {selectedProfile.bio && (
-                <div>
-                  <h3 className="font-semibold text-indigo-400">Bio:</h3>
-                  <p>{selectedProfile.bio}</p>
+                <div className="bg-gray-900/50 p-5 rounded-2xl border border-gray-800">
+                  <h3 className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-[#C5B239] rounded-full"></span>
+                    Biography
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{selectedProfile.bio}</p>
                 </div>
               )}
 
-              <div>
-                <h3 className="font-semibold text-indigo-400">Department:</h3>
-                <p>{selectedProfile.department || 'N/A'}</p>
-              </div>
+              {selectedProfile.skills && selectedProfile.skills.length > 0 && (
+                <div className="bg-gray-900/50 p-5 rounded-2xl border border-gray-800">
+                  <h3 className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-[#C5B239] rounded-full"></span>
+                    Expertise & Skills
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedProfile.skills.map((skill, i) => (
+                      <span key={i} className="bg-[#C5B239]/10 text-[#C5B239] text-[10px] font-bold px-3 py-1 rounded-full border border-[#C5B239]/20">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-              <div>
-                <h3 className="font-semibold text-indigo-400">Year:</h3>
-                <p>{selectedProfile.year || 'N/A'}</p>
-              </div>
+              {selectedProfile.experience && (
+                <div className="bg-gray-900/50 p-5 rounded-2xl border border-gray-800">
+                  <h3 className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-[#C5B239] rounded-full"></span>
+                    Experience Summary
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">{selectedProfile.experience}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* CSV Import Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl shadow-xl relative">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-[#111] border border-gray-800 rounded-3xl p-8 md:p-10 w-full max-w-2xl shadow-2xl relative animate-slide-up">
             <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+              className="absolute top-5 right-5 text-gray-500 hover:text-white transition-colors bg-gray-900/50 p-2 rounded-full"
               onClick={closeImportModal}
             >
               <X size={20} />
             </button>
 
-            <h2 className="text-2xl font-semibold mb-6">
-              Import Users from CSV
-            </h2>
+            <header className="mb-8">
+              <h2 className="text-2xl font-bold text-white tracking-tight mb-2">
+                Import Network Data
+              </h2>
+              <p className="text-gray-500 text-sm">Onboard multiple users via CSV spreadsheet</p>
+            </header>
 
             {!importResults ? (
-              <div className="space-y-4">
-                <div className="bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-indigo-400 mb-2">CSV Format Requirements:</h3>
-                  <p className="text-sm text-gray-300 mb-2">
-                    Your CSV file should have the following columns:
-                  </p>
-                  <ul className="text-sm text-gray-400 list-disc ml-5 space-y-1">
-                    <li><strong>Required:</strong> Name, Email, Role (alumni/student), Department, Year</li>
-                    <li><strong>Optional:</strong> Skills (semicolon-separated), Company, Position, Location</li>
+              <div className="space-y-6">
+                <div className="bg-gray-900/50 p-5 rounded-2xl border border-gray-800">
+                  <h3 className="font-bold text-[#C5B239] text-xs uppercase tracking-widest mb-3">CSV Format Guide</h3>
+                  <ul className="text-xs text-gray-400 space-y-2">
+                    <li className="flex gap-2">
+                      <span className="text-[#C5B239]">•</span>
+                      <p><strong>Required Columns:</strong> Name, Email, Role (alumni/student), Department, Year</p>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-[#C5B239]">•</span>
+                      <p><strong>Optional:</strong> Skills (semicolon-separated), Company, Position, Location</p>
+                    </li>
+                    <li className="flex gap-2">
+                      <span className="text-gray-500">•</span>
+                      <p className="italic">Note: Temporary password "changeme123" will be assigned</p>
+                    </li>
                   </ul>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Note: Imported users will have a default password "changeme123" that they should change on first login.
-                  </p>
                 </div>
 
-                <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center">
+                <div className="border-2 border-dashed border-gray-800 hover:border-[#C5B239]/50 rounded-2xl p-10 text-center transition-all group bg-black/20">
                   <input
                     type="file"
                     accept=".csv"
@@ -466,54 +502,60 @@ const Admin_Directory = () => {
                     htmlFor="csv-upload"
                     className="cursor-pointer flex flex-col items-center"
                   >
-                    <Upload size={48} className="text-gray-400 mb-3" />
-                    <span className="text-gray-300 font-medium">
-                      {selectedFile ? selectedFile.name : 'Click to select CSV file'}
+                    <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center mb-4 border border-gray-800 group-hover:border-[#C5B239]/30 transition-colors">
+                      <Upload size={32} className="text-gray-500 group-hover:text-[#C5B239] transition-colors" />
+                    </div>
+                    <span className="text-gray-300 font-bold group-hover:text-white transition-colors">
+                      {selectedFile ? selectedFile.name : 'Select CSV manifest'}
                     </span>
-                    <span className="text-gray-500 text-sm mt-1">
-                      Maximum file size: 5MB
+                    <span className="text-gray-600 text-[10px] uppercase font-bold tracking-widest mt-2">
+                      CSV format only • Max 5MB
                     </span>
                   </label>
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   <button
                     onClick={handleImportCSV}
                     disabled={!selectedFile || importing}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${!selectedFile || importing
-                      ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                      : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                    className={`flex-1 py-3.5 rounded-xl font-bold uppercase tracking-wider transition-all shadow-lg ${!selectedFile || importing
+                      ? 'bg-gray-800 text-gray-600 cursor-not-allowed border border-transparent'
+                      : 'bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black hover:scale-[1.02] active:scale-[0.98]'
                       }`}
                   >
-                    {importing ? 'Importing...' : 'Import CSV'}
+                    {importing ? 'Processing Data...' : 'Begin Import'}
                   </button>
                   <button
                     onClick={closeImportModal}
-                    className="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg text-white font-semibold transition-colors"
+                    className="flex-1 bg-gray-900/50 hover:bg-gray-800/50 text-gray-400 hover:text-white py-3.5 rounded-xl font-bold uppercase tracking-wider transition-all border border-gray-800"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="bg-green-900/30 border border-green-500 text-green-200 px-4 py-3 rounded-lg">
-                  <p className="font-semibold">Import Completed!</p>
-                  <p className="text-sm mt-1">
-                    {importResults.imported} records imported successfully
-                    {importResults.skipped > 0 && `, ${importResults.skipped} skipped (duplicates)`}
+              <div className="space-y-6">
+                <div className="bg-green-500/10 border border-green-500/30 text-green-400 p-6 rounded-2xl">
+                  <p className="font-bold flex items-center gap-2 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    Import Successful
+                  </p>
+                  <p className="text-sm font-medium text-gray-400">
+                    <span className="text-green-400 font-bold">{importResults.imported}</span> records processed
+                    {importResults.skipped > 0 && ` (${importResults.skipped} duplicates skipped)`}
                   </p>
                 </div>
 
                 {importResults.errors && importResults.errors.length > 0 && (
-                  <div className="bg-red-900/30 border border-red-500 rounded-lg p-4 max-h-64 overflow-y-auto">
-                    <h3 className="font-semibold text-red-300 mb-2">
-                      Errors ({importResults.errors.length}):
+                  <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
+                    <h3 className="font-bold text-red-400 text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                      Data Conflicts ({importResults.errors.length})
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                       {importResults.errors.map((error, idx) => (
-                        <div key={idx} className="text-sm text-red-200 bg-red-900/20 p-2 rounded">
-                          <span className="font-semibold">Row {error.row}:</span> {error.error}
+                        <div key={idx} className="text-xs text-gray-400 bg-black/30 p-3 rounded-xl border border-gray-800/50">
+                          <span className="text-red-400 font-bold mr-2 uppercase">Row {error.row}:</span> {error.error}
                         </div>
                       ))}
                     </div>
@@ -522,9 +564,9 @@ const Admin_Directory = () => {
 
                 <button
                   onClick={closeImportModal}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-lg text-white font-semibold transition-colors"
+                  className="w-full bg-gray-900 border border-gray-800 hover:border-gray-700 py-4 rounded-xl text-white font-bold uppercase tracking-widest transition-all shadow-lg"
                 >
-                  Close
+                  Return to Directory
                 </button>
               </div>
             )}

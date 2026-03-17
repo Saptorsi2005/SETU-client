@@ -809,14 +809,14 @@ const Post = () => {
 
       <div className="pt-24 min-h-screen bg-[#0d0d0d] text-white p-6">
         {/* Navigation Tabs */}
-        <div className="flex justify-center gap-6 border-b border-gray-700 pb-3 mb-6">
+        <div className="flex flex-wrap justify-center gap-2 md:gap-3 pb-6 mb-6 border-b border-gray-800">
           {["recommendations", "connections", "feed", "jobpost"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`capitalize px-4 py-2 rounded-md font-medium transition-colors duration-200 ${activeTab === tab
-                ? "bg-[#C5B239] text-black"
-                : "text-gray-400 hover:text-[#C5B239]"
+              className={`capitalize px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base rounded-xl font-semibold transition-all duration-200 ${activeTab === tab
+                ? "bg-gradient-to-r from-[#C5B239] to-[#a89628] text-black shadow-lg shadow-[#C5B239]/20"
+                : "text-gray-400 hover:text-white hover:bg-gray-800/50 border border-transparent hover:border-gray-700"
                 }`}
             >
               {tab === "jobpost" ? "Job Post" : tab}
@@ -828,10 +828,13 @@ const Post = () => {
         <div className="max-w-5xl mx-auto space-y-6">
           {/* Recommendations */}
           {activeTab === "recommendations" && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-[#C5B239]">
-                Mentor Recommendations
-              </h2>
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="h-1 w-10 bg-gradient-to-r from-[#C5B239] to-purple-500 rounded-full"></div>
+                <h2 className="text-xl font-bold tracking-wide text-gray-100">
+                  Mentor Recommendations
+                </h2>
+              </div>
 
               {/* Search */}
               <input
@@ -839,56 +842,56 @@ const Post = () => {
                 placeholder="Search mentors by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#111] text-white p-3 rounded-lg outline-none border border-gray-700 focus:border-[#C5B239]"
+                className="w-full bg-black/40 text-white p-3.5 rounded-xl outline-none border border-gray-800 focus:border-[#C5B239]/50 transition-colors placeholder-gray-500"
               />
 
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredMentors.map((mentor) => (
                   <div
                     key={mentor.id}
-                    className="bg-[#1a1a1a] p-3 rounded-lg shadow-sm hover:bg-[#222] transition"
+                    className="bg-[#111] p-4 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all duration-200 group shadow-lg"
                   >
                     <div className="flex items-center gap-3">
                       <img
                         src={mentor.avatar}
                         alt={mentor.name}
-                        className="w-10 h-10 rounded-full object-cover"
+                        className="w-11 h-11 rounded-full object-cover ring-2 ring-gray-700 group-hover:ring-[#C5B239]/40 transition-all"
                       />
 
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-[#C5B239]">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-bold text-white group-hover:text-[#C5B239] transition-colors truncate">
                           {mentor.name}
                         </h3>
-                        <p className="text-xs text-gray-400">{mentor.skill}</p>
+                        <p className="text-xs text-gray-500 truncate">{mentor.skill}</p>
                       </div>
 
-                      <span className="text-xs text-gray-300 font-medium">
+                      <span className="text-xs font-bold text-[#C5B239] bg-[#C5B239]/10 px-2 py-1 rounded-lg border border-[#C5B239]/20">
                         {mentor.match}%
                       </span>
                     </div>
 
                     {/* Match bar */}
-                    <div className="w-full bg-gray-800 rounded-full h-1.5 mt-2">
+                    <div className="w-full bg-gray-800 rounded-full h-1.5 mt-3">
                       <div
-                        className="bg-[#C5B239] h-1.5 rounded-full"
+                        className="bg-gradient-to-r from-[#C5B239] to-[#d4c048] h-1.5 rounded-full transition-all duration-500"
                         style={{ width: `${mentor.match}%` }}
                       />
                     </div>
 
                     {/* Actions */}
-                    <div className="flex justify-between mt-3">
+                    <div className="flex justify-between items-center mt-4">
                       <button
                         onClick={() => {
                           navigate(`/mentor/${mentor.id}`);
                         }}
-                        className="text-xs text-gray-400 hover:text-[#C5B239]"
+                        className="text-xs font-medium text-gray-400 hover:text-[#C5B239] transition-colors"
                       >
                         View Profile
                       </button>
 
                       <button
                         onClick={() => handleConnect(mentor)}
-                        className="bg-[#C5B239] text-black text-xs px-3 py-1 rounded-md hover:bg-[#b9a531]"
+                        className="bg-gradient-to-r from-[#C5B239] to-[#a89628] text-black text-xs font-bold px-4 py-1.5 rounded-lg hover:from-[#d4c048] hover:to-[#C5B239] transition-all hover:scale-[1.02] active:scale-[0.98]"
                       >
                         Connect
                       </button>
@@ -899,30 +902,110 @@ const Post = () => {
             </div>
           )}
 
-          {/* Connections */}
           {activeTab === "connections" && (
-            <div className="flex gap-6">
+            <div className="space-y-6">
 
-              {/* LEFT: Main Connections List (UNCHANGED CODE MOVED HERE) */}
-              <div className="flex-1 space-y-4">
-                <h2 className="text-xl font-semibold text-[#C5B239]">
-                  Your Connections
-                </h2>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4 mb-2">
+                  <div className="h-1 w-10 bg-gradient-to-r from-[#C5B239] to-purple-500 rounded-full"></div>
+                  <h2 className="text-xl font-bold tracking-wide text-gray-100">
+                    Your Connections
+                  </h2>
+                </div>
 
-                <input
-                  type="text"
-                  placeholder="Search connections by name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#111] text-white p-3 rounded-lg outline-none border border-gray-700 focus:border-[#C5B239]"
-                />
+                {/* Top Controls Area: Search + Requests */}
+                <div className="flex flex-col md:flex-row gap-6 items-start">
 
+                  {/* Search Bar - Takes available width */}
+                  <div className="flex-1 w-full">
+                    <input
+                      type="text"
+                      placeholder="Search connections by name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full bg-black/40 text-white p-3.5 rounded-xl outline-none border border-gray-800 focus:border-[#C5B239]/50 transition-colors placeholder-gray-500 h-[50px]"
+                    />
+                  </div>
+
+                  {/* Student Requests Panel (Alumni Only) */}
+                  {user?.role === "alumni" && (
+                    <div className="w-full md:w-auto md:min-w-[320px] lg:min-w-[350px] bg-[#111] p-5 rounded-2xl border border-gray-800 self-start shadow-lg">
+                      <h3 className="text-sm font-bold text-gray-200 mb-3 flex justify-between items-center">
+                        <span className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-[#C5B239] rounded-full"></div>
+                          Student Requests
+                        </span>
+                        {studentRequests.length > 0 && (
+                          <span className="bg-gradient-to-r from-[#C5B239] to-[#a89628] text-black text-xs px-2.5 py-0.5 rounded-full font-bold">
+                            {studentRequests.length}
+                          </span>
+                        )}
+                      </h3>
+
+                      {loadingStudentRequests ? (
+                        <div className="flex justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#C5B239]"></div>
+                        </div>
+                      ) : studentRequests.length === 0 ? (
+                        <p className="text-gray-500 text-xs text-center py-3">No pending requests</p>
+                      ) : (
+                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                          {studentRequests.map((req) => (
+                            <div
+                              key={req.request_id}
+                              className="bg-gray-900/50 p-3.5 rounded-xl border border-gray-800"
+                            >
+                              <div className="flex justify-between items-start mb-1">
+                                <div>
+                                  <p className="text-sm font-bold text-white">
+                                    {req.student_name}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {req.student_skill || "Student"}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex gap-2 mt-2.5">
+                                <button
+                                  onClick={() => handleAcceptRequest(req.request_id)}
+                                  className="flex-1 bg-green-600/80 hover:bg-green-600 text-white text-xs py-1.5 rounded-lg transition-colors font-semibold"
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  onClick={() => handleRejectRequest(req.request_id)}
+                                  className="flex-1 bg-red-600/80 hover:bg-red-600 text-white text-xs py-1.5 rounded-lg transition-colors font-semibold"
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Main Connections Grid */}
+              <div className="w-full">
                 {connections.length === 0 ? (
-                  <p className="text-gray-400 text-center py-10">
-                    You have no connections yet. Start connecting with mentors.
-                  </p>
+                  <div className="bg-[#111] p-10 rounded-2xl text-center border border-gray-800 border-dashed">
+                    <span className="text-4xl mb-3 block">🤝</span>
+                    <p className="text-gray-400 mb-3 font-medium">
+                      You have no connections yet.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('recommendations')}
+                      className="text-[#C5B239] hover:underline text-sm font-semibold"
+                    >
+                      Find mentors to connect with →
+                    </button>
+                  </div>
                 ) : (
-                  <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {connections
                       .filter((conn) =>
                         conn.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -931,28 +1014,35 @@ const Post = () => {
                         <div
                           key={conn.id}
                           onClick={() => navigate(`/connectionProfile/${conn.id}`)}
-                          className="bg-[#1a1a1a] p-4 rounded-xl shadow-md flex justify-between items-center hover:bg-[#222] cursor-pointer transition-all"
+                          className="bg-[#111] p-4 rounded-2xl flex justify-between items-center cursor-pointer transition-all duration-200 border border-gray-800 hover:border-gray-700 shadow-lg group"
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
                             <img
                               src={conn.avatar}
                               alt={conn.name}
-                              className="w-12 h-12 rounded-full object-cover"
+                              className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-700 group-hover:ring-[#C5B239]/40 transition-all"
                             />
-                            <div>
-                              <h3 className="font-semibold text-[#C5B239]">
+                            <div className="min-w-0">
+                              <h3 className="font-bold text-white group-hover:text-[#C5B239] transition-colors truncate">
                                 {conn.name}
                               </h3>
-                              <p className="text-gray-400 text-sm">{conn.skill}</p>
+                              <p className="text-gray-500 text-xs truncate max-w-[120px]">{conn.skill || 'Connected'}</p>
                             </div>
                           </div>
 
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate("/messages");
+                              navigate("/messages", {
+                                state: {
+                                  userId: conn.id,
+                                  userName: conn.name,
+                                  userAvatar: conn.avatar,
+                                  userRole: 'Mentor'
+                                }
+                              });
                             }}
-                            className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-3 py-1 rounded-md text-sm transition"
+                            className="bg-[#C5B239]/10 hover:bg-[#C5B239] text-[#C5B239] hover:text-black font-bold px-3.5 py-1.5 rounded-lg text-xs transition-all border border-[#C5B239]/30 hover:border-[#C5B239] hover:scale-[1.02] active:scale-[0.98] shrink-0"
                           >
                             Message
                           </button>
@@ -961,76 +1051,34 @@ const Post = () => {
                   </div>
                 )}
               </div>
-
-              {/* RIGHT: Student Requests Sidebar (ALUMNI ONLY) */}
-              {user?.role === "alumni" && (
-                <div className="w-80 bg-[#1a1a1a] p-4 rounded-xl border border-gray-700 h-fit sticky top-24">
-                  <h3 className="text-lg font-semibold text-[#C5B239] mb-3">
-                    Student Connection Requests
-                  </h3>
-
-                  {loadingStudentRequests ? (
-                    <p className="text-gray-400 text-sm">Loading...</p>
-                  ) : studentRequests.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No pending requests</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {studentRequests.map((req) => (
-                        <div
-                          key={req.request_id}
-                          className="bg-[#111] p-3 rounded-lg border border-gray-700"
-                        >
-                          <p className="text-sm font-semibold text-white">
-                            {req.student_name}
-                          </p>
-                          <p className="text-xs text-gray-400">
-                            {req.student_skill || "Student"}
-                          </p>
-
-                          <div className="flex gap-2 mt-2">
-                            <button
-                              onClick={() => handleAcceptRequest(req.request_id)}
-                              className="flex-1 bg-green-600 hover:bg-green-700 text-white text-xs py-1 rounded"
-                            >
-                              Accept
-                            </button>
-                            <button
-                              onClick={() => handleRejectRequest(req.request_id)}
-                              className="flex-1 bg-red-600 hover:bg-red-700 text-white text-xs py-1 rounded"
-                            >
-                              Reject
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
 
           {/* Feed */}
           {activeTab === "feed" && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold mb-2 text-[#C5B239]">Feed</h2>
+            <div className="space-y-6">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="h-1 w-10 bg-gradient-to-r from-[#C5B239] to-purple-500 rounded-full"></div>
+                <h2 className="text-xl font-bold tracking-wide text-gray-100">Feed</h2>
+              </div>
 
               {/* 🔹 Create Post */}
-              <div className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3">
+              <div className="bg-gradient-to-br from-[#1a1a2e] to-[#111] p-5 rounded-2xl border border-gray-800 shadow-xl space-y-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-[#C5B239]/5 rounded-full blur-3xl pointer-events-none"></div>
                 <textarea
                   value={newPost.text}
                   onChange={(e) =>
                     setNewPost({ ...newPost, text: e.target.value })
                   }
-                  placeholder="Create a post..."
+                  placeholder="What's on your mind? Share with your network..."
                   rows={3}
-                  className="w-full bg-[#111] text-white p-3 rounded-lg outline-none resize-none"
+                  className="w-full bg-black/40 text-white p-4 rounded-xl outline-none resize-none border border-gray-800 focus:border-[#C5B239]/50 transition-colors placeholder-gray-500 relative z-10"
                 />
 
                 {/* Image upload button */}
-                <div className="flex items-center gap-3">
-                  <label className="cursor-pointer bg-[#2a2a2a] hover:bg-[#333] text-gray-300 px-4 py-2 rounded-lg transition flex items-center gap-2">
+                <div className="flex items-center gap-3 relative z-10">
+                  <label className="cursor-pointer bg-gray-800/60 hover:bg-gray-700/60 text-gray-300 hover:text-white px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 border border-gray-700 hover:border-gray-600">
                     <svg
                       className="w-5 h-5"
                       fill="none"
@@ -1044,7 +1092,7 @@ const Post = () => {
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    Add Photo
+                    <span className="text-sm font-medium">Add Photo</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -1053,7 +1101,7 @@ const Post = () => {
                     />
                   </label>
                   {newPost.image && (
-                    <span className="text-green-400 text-sm flex items-center gap-2">
+                    <span className="text-green-400 text-sm flex items-center gap-2 bg-green-500/10 px-3 py-1.5 rounded-lg border border-green-500/20">
                       <svg
                         className="w-4 h-4"
                         fill="currentColor"
@@ -1072,15 +1120,15 @@ const Post = () => {
 
                 {/* Image preview */}
                 {newPost.image && (
-                  <div className="relative">
+                  <div className="relative rounded-xl overflow-hidden border border-gray-700 z-10">
                     <img
                       src={URL.createObjectURL(newPost.image)}
                       alt="Preview"
-                      className="w-full max-h-96 object-contain rounded-lg border border-gray-700 bg-black"
+                      className="w-full max-h-96 object-contain bg-black"
                     />
                     <button
                       onClick={handleRemoveImage}
-                      className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition"
+                      className="absolute top-3 right-3 bg-red-500/90 hover:bg-red-600 text-white rounded-full p-2 transition-all shadow-lg backdrop-blur-sm"
                       title="Remove image"
                     >
                       <svg
@@ -1100,10 +1148,10 @@ const Post = () => {
                   </div>
                 )}
 
-                <div className="flex justify-end">
+                <div className="flex justify-end relative z-10">
                   <button
                     onClick={handleCreatePost}
-                    className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md transition"
+                    className="bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black font-bold px-6 py-2.5 rounded-xl transition-all shadow-lg hover:shadow-[#C5B239]/20 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     Post
                   </button>
@@ -1112,8 +1160,8 @@ const Post = () => {
 
               {/* Loading state */}
               {loadingPosts && (
-                <div className="text-center py-8">
-                  <p className="text-gray-400">Loading posts...</p>
+                <div className="flex justify-center py-12">
+                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#C5B239]"></div>
                 </div>
               )}
 
@@ -1122,25 +1170,28 @@ const Post = () => {
                 posts.map((post) => (
                   <div
                     key={post.post_id}
-                    className="bg-[#1a1a1a] p-4 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
+                    className="bg-[#111] p-5 rounded-2xl border border-gray-800 shadow-lg hover:border-gray-700 transition-all duration-200 space-y-4 group"
                   >
                     {/* Author Info with Delete Button */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={post.author_avatar || assets.profile}
-                          alt="User"
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
+                        <div className="relative">
+                          <img
+                            src={post.author_avatar || assets.profile}
+                            alt="User"
+                            className="w-11 h-11 rounded-full object-cover ring-2 ring-gray-700 group-hover:ring-[#C5B239]/30 transition-all"
+                          />
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-[#111]"></div>
+                        </div>
                         <div>
-                          <h3 className="font-semibold text-[#C5B239]">
+                          <h3 className="font-bold text-white group-hover:text-[#C5B239] transition-colors">
                             {post.author_name ||
                               `${post.user_role === "student"
                                 ? "Student"
                                 : "Alumni"
                               } (ID: ${post.user_id})`}
                           </h3>
-                          <p className="text-gray-400 text-sm">
+                          <p className="text-gray-500 text-xs font-medium capitalize">
                             {post.user_role}
                           </p>
                         </div>
@@ -1153,7 +1204,7 @@ const Post = () => {
                           user.student_id === post.user_id) && (
                           <button
                             onClick={() => handleDeletePost(post.post_id)}
-                            className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
+                            className="text-red-400/60 hover:text-red-400 hover:bg-red-900/20 p-2.5 rounded-xl transition-all"
                             title="Delete post"
                           >
                             <svg
@@ -1173,11 +1224,11 @@ const Post = () => {
                     </div>
 
                     {/* Post Text */}
-                    <p className="text-gray-300">{post.content}</p>
+                    <p className="text-gray-200 leading-relaxed">{post.content}</p>
 
                     {/* Post Image */}
                     {post.image_url && (
-                      <div className="w-full rounded-lg overflow-hidden border border-gray-800 bg-black">
+                      <div className="w-full rounded-xl overflow-hidden border border-gray-800 bg-black">
                         <img
                           src={post.image_url}
                           alt="Post visual"
@@ -1187,32 +1238,34 @@ const Post = () => {
                     )}
 
                     {/* Actions */}
-                    <div className="flex justify-between mt-3 pt-2 border-t border-gray-700">
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-800">
                       <button
                         onClick={() => handleLike(post.post_id, post.is_liked)}
-                        className={`${post.is_liked ? "text-[#C5B239]" : "text-gray-400"
-                          } hover:text-[#C5B239] text-sm transition`}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${post.is_liked
+                          ? "text-[#C5B239] bg-[#C5B239]/10 border border-[#C5B239]/20"
+                          : "text-gray-400 hover:text-[#C5B239] hover:bg-gray-800/50"
+                          }`}
                       >
                         👍 {post.is_liked ? "Liked" : "Like"} ({post.likes_count})
                       </button>
 
                       <button
                         onClick={() => toggleComments(post.post_id)}
-                        className="text-gray-400 hover:text-[#C5B239] text-sm transition"
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-[#C5B239] hover:bg-gray-800/50 transition-all"
                       >
                         💬 Comment ({post.comments_count})
                       </button>
 
-                      <button className="text-gray-400 hover:text-[#C5B239] text-sm transition">
+                      <button className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-gray-400 hover:text-[#C5B239] hover:bg-gray-800/50 transition-all">
                         ✉️ Message
                       </button>
                     </div>
 
                     {/* Comments Section */}
                     {showComments[post.post_id] && (
-                      <div className="mt-4 border-t border-gray-700 pt-4">
+                      <div className="mt-2 border-t border-gray-800 pt-4 space-y-3">
                         {/* Add Comment Input */}
-                        <div className="flex gap-2 mb-4">
+                        <div className="flex gap-2">
                           <input
                             type="text"
                             value={commentText[post.post_id] || ""}
@@ -1228,30 +1281,33 @@ const Post = () => {
                               }
                             }}
                             placeholder="Write a comment..."
-                            className="flex-1 bg-[#212529] border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-[#C5B239]"
+                            className="flex-1 bg-black/40 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-[#C5B239]/50 transition-colors text-sm"
                           />
                           <button
                             onClick={() => handleAddComment(post.post_id)}
-                            className="bg-[#C5B239] text-black px-4 py-2 rounded-lg hover:bg-[#d4c04a] transition"
+                            className="bg-[#C5B239] text-black px-5 py-2.5 rounded-xl hover:bg-[#d4c04a] transition-all font-semibold text-sm"
                           >
                             Post
                           </button>
                         </div>
 
                         {/* Display Comments */}
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           {comments[post.post_id]?.length > 0 ? (
                             comments[post.post_id].map((comment) => (
                               <div
                                 key={comment.comment_id}
-                                className="bg-[#212529] p-3 rounded-lg"
+                                className="bg-gray-900/50 p-3.5 rounded-xl border border-gray-800"
                               >
-                                <div className="flex items-center gap-2 mb-1">
-                                  <div className="w-6 h-6 rounded-full bg-[#C5B239] flex items-center justify-center text-black text-xs font-bold">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#C5B239] to-[#a89628] flex items-center justify-center text-black text-xs font-bold">
                                     {comment.user_role?.charAt(0).toUpperCase()}
                                   </div>
-                                  <span className="text-sm text-gray-400">
+                                  <span className="text-sm font-medium text-gray-300 capitalize">
                                     {comment.user_role}
+                                  </span>
+                                  <span className="text-xs text-gray-600">
+                                    •
                                   </span>
                                   <span className="text-xs text-gray-500">
                                     {new Date(
@@ -1259,15 +1315,17 @@ const Post = () => {
                                     ).toLocaleDateString()}
                                   </span>
                                 </div>
-                                <p className="text-gray-300 text-sm">
+                                <p className="text-gray-300 text-sm leading-relaxed pl-8">
                                   {comment.comment_text}
                                 </p>
                               </div>
                             ))
                           ) : (
-                            <p className="text-gray-500 text-sm text-center py-2">
-                              No comments yet. Be the first to comment!
-                            </p>
+                            <div className="text-center py-4">
+                              <p className="text-gray-500 text-sm">
+                                No comments yet. Be the first to comment!
+                              </p>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1277,8 +1335,9 @@ const Post = () => {
 
               {/* No posts message */}
               {!loadingPosts && posts.length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-gray-400">
+                <div className="bg-[#111] rounded-2xl border border-gray-800 border-dashed p-12 text-center">
+                  <span className="text-4xl mb-3 block">📝</span>
+                  <p className="text-gray-400 font-medium">
                     No posts yet. Be the first to share!
                   </p>
                 </div>
@@ -1288,7 +1347,7 @@ const Post = () => {
 
           {/* Job Post */}
           {activeTab === "jobpost" && (
-            <div className="flex gap-6">
+            <div className="flex flex-col lg:flex-row gap-6">
 
               {/* LEFT: Existing Job Content */}
               <div className="flex-1 space-y-6">
@@ -1296,62 +1355,66 @@ const Post = () => {
                 {/* Alumni: My Pending Job Requests */}
                 {user?.role === "alumni" && (
                   <div className="space-y-4">
-                    <h2 className="text-xl font-semibold text-[#C5B239]">
-                      My Pending Job Requests
-                    </h2>
-                    <p className="text-gray-400 text-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="h-1 w-10 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full"></div>
+                      <h2 className="text-xl font-bold tracking-wide text-gray-100">
+                        My Pending Job Requests
+                      </h2>
+                    </div>
+                    <p className="text-gray-500 text-sm pl-14">
                       Jobs you've requested that are awaiting admin approval
                     </p>
 
                     {loadingRequests ? (
-                      <div className="text-center text-gray-400 py-8">
-                        Loading your requests...
+                      <div className="flex justify-center py-10">
+                        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#C5B239]"></div>
                       </div>
                     ) : myJobRequests.filter(req => req.status === 'pending').length === 0 ? (
-                      <div className="text-center text-gray-400 py-6">
-                        No pending job requests. You can request a new job posting below.
+                      <div className="bg-[#111] rounded-2xl border border-gray-800 border-dashed p-8 text-center">
+                        <span className="text-3xl mb-2 block">⏳</span>
+                        <p className="text-gray-400 text-sm font-medium">No pending job requests. You can request a new job posting below.</p>
                       </div>
                     ) : (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {myJobRequests.filter(req => req.status === 'pending').map((request) => (
                           <div
                             key={request.request_id}
-                            className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
+                            className="bg-[#111] p-5 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all duration-200 space-y-3 shadow-lg group"
                           >
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
-                                <h3 className="font-semibold text-lg text-[#C5B239] flex items-center gap-2">
-                                  <FaBriefcase className="text-sm" />
+                                <h3 className="font-bold text-lg text-white group-hover:text-[#C5B239] transition-colors flex items-center gap-2">
+                                  <FaBriefcase className="text-sm text-[#C5B239]" />
                                   {request.job_title}
                                 </h3>
-                                <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400 mt-2">
-                                  <span className="flex items-center gap-1">
-                                    <FaBuilding />
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                  <span className="flex items-center gap-1.5 text-sm text-gray-400 bg-gray-800/50 px-3 py-1 rounded-lg">
+                                    <FaBuilding className="text-xs" />
                                     {request.company}
                                   </span>
                                   {request.location && (
-                                    <span className="flex items-center gap-1">
-                                      <FaMapMarkerAlt />
+                                    <span className="flex items-center gap-1.5 text-sm text-gray-400 bg-gray-800/50 px-3 py-1 rounded-lg">
+                                      <FaMapMarkerAlt className="text-xs" />
                                       {request.location}
                                     </span>
                                   )}
                                   <span
-                                    className={`px-2 py-1 rounded text-xs ${request.status === "pending"
-                                      ? "bg-yellow-500/20 text-yellow-500"
+                                    className={`px-3 py-1 rounded-lg text-xs font-bold ${request.status === "pending"
+                                      ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20"
                                       : request.status === "approved"
-                                        ? "bg-green-500/20 text-green-500"
-                                        : "bg-red-500/20 text-red-500"
+                                        ? "bg-green-500/15 text-green-400 border border-green-500/20"
+                                        : "bg-red-500/15 text-red-400 border border-red-500/20"
                                       }`}
                                   >
                                     {request.status.toUpperCase()}
                                   </span>
                                 </div>
-                                <p className="text-gray-300 text-sm mb-2">
+                                <p className="text-gray-300 text-sm mt-3 leading-relaxed">
                                   {request.description}
                                 </p>
                                 {request.requirements && (
-                                  <div className="text-gray-400 text-sm">
-                                    <span className="font-semibold">Requirements:</span>{" "}
+                                  <div className="text-gray-400 text-sm mt-2">
+                                    <span className="font-bold text-gray-300">Requirements:</span>{" "}
                                     {request.requirements}
                                   </div>
                                 )}
@@ -1363,7 +1426,7 @@ const Post = () => {
                                   onClick={() =>
                                     handleDeletePendingRequest(request.request_id)
                                   }
-                                  className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all ml-4"
+                                  className="text-red-400/60 hover:text-red-400 hover:bg-red-900/20 p-2.5 rounded-xl transition-all ml-4"
                                   title="Delete request"
                                 >
                                   <FaTrash className="text-sm" />
@@ -1380,15 +1443,18 @@ const Post = () => {
                 {/* Job Openings */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold text-[#C5B239]">
-                      Job Openings
-                    </h2>
+                    <div className="flex items-center gap-4">
+                      <div className="h-1 w-10 bg-gradient-to-r from-[#C5B239] to-purple-500 rounded-full"></div>
+                      <h2 className="text-xl font-bold tracking-wide text-gray-100">
+                        Job Openings
+                      </h2>
+                    </div>
 
                     {/* Add Job button for Alumni and Admin */}
                     {user && (user.role === "alumni" || user.role === "admin") && (
                       <button
                         onClick={() => setShowAddJobModal(true)}
-                        className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
+                        className="bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-lg hover:shadow-[#C5B239]/20 hover:scale-[1.02] active:scale-[0.98]"
                       >
                         {user.role === "admin"
                           ? "Create Job"
@@ -1398,45 +1464,48 @@ const Post = () => {
                   </div>
 
                   {loadingJobs ? (
-                    <div className="text-center text-gray-400 py-8">
-                      Loading jobs...
+                    <div className="flex justify-center py-10">
+                      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#C5B239]"></div>
                     </div>
                   ) : jobs.length === 0 ? (
-                    <div className="text-center text-gray-400 py-8">
-                      No jobs available at the moment.
+                    <div className="bg-[#111] rounded-2xl border border-gray-800 border-dashed p-10 text-center">
+                      <span className="text-4xl mb-3 block">💼</span>
+                      <p className="text-gray-400 font-medium">
+                        No jobs available at the moment.
+                      </p>
                     </div>
                   ) : (
                     jobs.map((job) => (
                       <div
                         key={job.job_id}
-                        className="bg-[#1a1a1a] p-5 rounded-xl shadow-md space-y-3 hover:bg-[#1e1e1e] transition-all"
+                        className="bg-[#111] p-5 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all duration-200 space-y-3 shadow-lg group"
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-lg text-[#C5B239] mb-2 flex items-center gap-2">
-                              <FaBriefcase className="text-sm" />
+                            <h3 className="font-bold text-lg text-white group-hover:text-[#C5B239] transition-colors mb-2 flex items-center gap-2">
+                              <FaBriefcase className="text-sm text-[#C5B239]" />
                               {job.title}
                             </h3>
-                            <div className="flex flex-wrap gap-3 mb-3 text-sm text-gray-400">
-                              <span className="flex items-center gap-1">
-                                <FaBuilding />
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              <span className="flex items-center gap-1.5 text-sm text-gray-400 bg-gray-800/50 px-3 py-1 rounded-lg">
+                                <FaBuilding className="text-xs" />
                                 {job.company}
                               </span>
                               {job.location && (
-                                <span className="flex items-center gap-1">
-                                  <FaMapMarkerAlt />
+                                <span className="flex items-center gap-1.5 text-sm text-gray-400 bg-gray-800/50 px-3 py-1 rounded-lg">
+                                  <FaMapMarkerAlt className="text-xs" />
                                   {job.location}
                                 </span>
                               )}
-                              <span className="flex items-center gap-1">
-                                <FaUserTie />
+                              <span className="flex items-center gap-1.5 text-sm text-gray-400 bg-gray-800/50 px-3 py-1 rounded-lg">
+                                <FaUserTie className="text-xs" />
                                 Posted by:{" "}
                                 {job.posted_by_role === "admin"
                                   ? "Admin"
                                   : "Alumni"}
                               </span>
                               {job.application_count > 0 && (
-                                <span className="text-[#C5B239]">
+                                <span className="text-[#C5B239] text-sm font-bold bg-[#C5B239]/10 px-3 py-1 rounded-lg border border-[#C5B239]/20">
                                   {job.application_count}{" "}
                                   {job.application_count === 1
                                     ? "application"
@@ -1444,12 +1513,12 @@ const Post = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-gray-300 text-sm mb-2">
+                            <p className="text-gray-200 text-sm mb-2 leading-relaxed">
                               {job.description}
                             </p>
                             {job.requirements && (
                               <div className="text-gray-400 text-sm">
-                                <span className="font-semibold">
+                                <span className="font-bold text-gray-300">
                                   Requirements:
                                 </span>{" "}
                                 {job.requirements}
@@ -1462,7 +1531,7 @@ const Post = () => {
                             {user && user.role === "admin" && (
                               <button
                                 onClick={() => handleDeleteJob(job.job_id)}
-                                className="text-red-400 hover:text-red-500 hover:bg-red-900/20 p-2 rounded-lg transition-all"
+                                className="text-red-400/60 hover:text-red-400 hover:bg-red-900/20 p-2.5 rounded-xl transition-all"
                                 title="Delete job"
                               >
                                 <FaTrash className="text-sm" />
@@ -1475,7 +1544,7 @@ const Post = () => {
                                 user.role === "alumni") && (
                                 <button
                                   onClick={() => setShowApplyModal(job.job_id)}
-                                  className="bg-[#C5B239] hover:bg-[#b9a531] text-black font-medium px-4 py-2 rounded-md text-sm transition"
+                                  className="bg-gradient-to-r from-[#C5B239] to-[#a89628] hover:from-[#d4c048] hover:to-[#C5B239] text-black font-bold px-5 py-2 rounded-xl text-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
                                 >
                                   Apply
                                 </button>
@@ -1493,33 +1562,36 @@ const Post = () => {
 
               {/* RIGHT SIDEBAR: My Applications */}
               {user && (user.role === "student" || user.role === "alumni") && (
-                <div className="w-80 bg-[#1a1a1a] p-4 rounded-xl border border-gray-700 h-fit sticky top-24">
-                  <h3 className="text-lg font-semibold text-[#C5B239] mb-3">
+                <div className="w-full lg:w-80 bg-[#111] p-5 rounded-2xl border border-gray-800 h-fit lg:sticky lg:top-24 shadow-lg">
+                  <h3 className="text-lg font-bold text-gray-200 mb-4 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-[#C5B239] rounded-full"></div>
                     My Job Applications
                   </h3>
 
                   {loadingApplications ? (
-                    <p className="text-gray-400 text-sm">Loading...</p>
+                    <div className="flex justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[#C5B239]"></div>
+                    </div>
                   ) : myApplications.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No applications yet</p>
+                    <p className="text-gray-500 text-sm text-center py-3">No applications yet</p>
                   ) : (
                     <div className="space-y-3">
                       {myApplications.map((app) => (
                         <div
                           key={app.application_id}
-                          className="bg-[#111] p-3 rounded-lg border border-gray-700"
+                          className="bg-gray-900/50 p-3.5 rounded-xl border border-gray-800"
                         >
-                          <p className="text-sm font-semibold text-white">
+                          <p className="text-sm font-bold text-white">
                             {app.job_title}
                           </p>
-                          <p className="text-xs text-gray-400">{app.company}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{app.company}</p>
 
                           <span
-                            className={`inline-block mt-1 px-2 py-0.5 text-xs rounded ${app.status === "pending"
-                              ? "bg-yellow-500/20 text-yellow-400"
+                            className={`inline-block mt-2 px-2.5 py-0.5 text-xs rounded-lg font-bold ${app.status === "pending"
+                              ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20"
                               : app.status === "accepted"
-                                ? "bg-green-500/20 text-green-400"
-                                : "bg-red-500/20 text-red-400"
+                                ? "bg-green-500/15 text-green-400 border border-green-500/20"
+                                : "bg-red-500/15 text-red-400 border border-red-500/20"
                               }`}
                           >
                             {app.status?.toUpperCase()}
@@ -1538,8 +1610,8 @@ const Post = () => {
 
       {/* Job Application Modal */}
       {showApplyModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-          <div className="bg-[#1a1a1a] p-8 rounded-xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
+          <div className="bg-[#1a1a1a] p-6 md:p-8 rounded-xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => {
                 setShowApplyModal(null);
@@ -1778,10 +1850,9 @@ const Post = () => {
         </div>
       )}
 
-      {/* Add/Request Job Modal */}
       {showAddJobModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
-          <div className="bg-[#1a1a1a] p-8 rounded-xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50 p-4">
+          <div className="bg-[#1a1a1a] p-6 md:p-8 rounded-xl w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => {
                 setShowAddJobModal(false);
