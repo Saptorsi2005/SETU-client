@@ -2,7 +2,7 @@ import React from "react";
 
 const MyApplicationsSidebar = ({ myApplications, loadingApplications }) => {
     return (
-        <div className="w-full lg:w-80 bg-[#111] p-5 rounded-2xl border border-gray-800 h-fit lg:sticky lg:top-24 shadow-lg">
+        <div className="w-full bg-[#111] p-5 rounded-2xl border border-gray-800 h-fit lg:sticky lg:top-24 shadow-lg">
             <h3 className="text-lg font-bold text-gray-200 mb-4 flex items-center gap-2">
                 <div className="w-2 h-2 bg-[#C5B239] rounded-full" />
                 My Job Applications
@@ -25,10 +25,10 @@ const MyApplicationsSidebar = ({ myApplications, loadingApplications }) => {
                             <p className="text-xs text-gray-500 mt-0.5">{app.company}</p>
                             <span
                                 className={`inline-block mt-2 px-2.5 py-0.5 text-xs rounded-lg font-bold ${app.status === "pending"
-                                        ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20"
-                                        : app.status === "accepted"
-                                            ? "bg-green-500/15 text-green-400 border border-green-500/20"
-                                            : "bg-red-500/15 text-red-400 border border-red-500/20"
+                                    ? "bg-yellow-500/15 text-yellow-400 border border-yellow-500/20"
+                                    : app.status === "accepted"
+                                        ? "bg-green-500/15 text-green-400 border border-green-500/20"
+                                        : "bg-red-500/15 text-red-400 border border-red-500/20"
                                     }`}
                             >
                                 {app.status?.toUpperCase()}
